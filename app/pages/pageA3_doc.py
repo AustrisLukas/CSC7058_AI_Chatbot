@@ -31,15 +31,20 @@ else:
         data_utils.view_pdf(st.session_state.file_data)
 
 
-# Populate chat with messages from chat_history
-for message in st.session_state.chat_history:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-
-
-user_input = st.chat_input("Type your question..")
+if "file_data" in st.session_state:
+    print(st.session_state.chat_history)
+    if len(st.session_state.chat_history) > 0:
+        user_input = st.chat_input("Type your question..")
+    else:
+        user_input = st.text_input("Type your question..")
+else:
+    user_input = st.text_input("Type your question..", disabled=True)
 
 if user_input:
+    for message in st.session_state.chat_history:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+
     # append user input to the chat history array
     st.session_state.chat_history.append({"role": "user", "content": user_input})
     # markdown user input to chat (to ensure there is no delay in message appearing in chat)
@@ -55,3 +60,7 @@ if user_input:
     # markdown AI response
     with st.chat_message("assistant"):
         st.markdown(ai_response)
+
+
+def add_message(message):
+    st.session_state.chat_history.append(message)
