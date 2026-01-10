@@ -37,7 +37,6 @@ with col1:
         st.button("Reset Chat", on_click=helpers.reset_chat)
 
 # Main section
-
 with col2:
 
     # Check for for presence of uploaded and processed (in bytes) file as 'file_data'.
