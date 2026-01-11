@@ -1,6 +1,12 @@
 import streamlit as st
 from services import openai_service
 import json
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="---->>> %(asctime)s [%(levelname)s] %(name)s: %(message)s",
+)
 
 pages = {
     "Assistants": [
