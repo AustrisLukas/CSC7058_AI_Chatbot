@@ -47,14 +47,13 @@ with st.sidebar:
 if "file_data" not in st.session_state:
     st.session_state.chat_history = []
     st.header("📚 Welcome to DocuMind", divider="red")
-    st.subheader(
-        "Upload your document to activate the chat and start asking questions."
-    )
+    st.subheader("Upload a document to activate the chat and start asking questions.")
     st.write("DocuMind provides clear, context-aware insights from your content.")
     col1, col2 = st.columns([6, 4])
     with col1:
         st.file_uploader(
-            "",
+            "document_upload",
+            label_visibility="hidden",
             type=["pdf", "docx", "xlsx", "csv"],
             accept_multiple_files=False,
             key="uploaded_file",
@@ -65,13 +64,15 @@ if "file_data" not in st.session_state:
 # RENDERS CHAT-ENABLED INTERFACE
 else:
     st.header("📚 DocuMind", divider="red")
-    st.write(st.session_state.file_name)
-    st.badge("Processed", icon=":material/check:", color="green")
-    helpers.load_chat_history()
+    st.markdown(
+        f":green-badge[:material/check: Uploaded] "
+        f":blue-badge[{st.session_state.file_name}]"
+    )
+    helpers.load_chat_history("documind")
 
     if user_input:
-        helpers.send_message("user", user_input)
 
+        helpers.send_message("user", user_input, "documind")
         # generate AI Response
         with st.spinner("thinking..", show_time=True):
             ai_response = openai_service.get_openai_response(
