@@ -20,7 +20,6 @@ else:
     st.session_state.webmind_enabled = False
     user_input = st.chat_input("Upload a URL, then type a question..", disabled=True)
 
-    # DO I NEED THIS ?????
 
 #   ---***--- SIDE CONTROLS ---***---
 # DISPLAY CHAT CONTROL SECTION IN THE SIDEBAR IF A VALID DOCUMENT IS UPLOADED
@@ -37,7 +36,11 @@ with st.sidebar:
             "View Document",
             use_container_width=True,
         )
-        st.button("Clear Chat", use_container_width=True, on_click=helpers.clear_chat)
+        st.button(
+            "Clear Chat",
+            use_container_width=True,
+            on_click=helpers.clear_chat,
+        )
         st.button("Reset Chat", use_container_width=True, on_click=helpers.reset_chat)
 
 
@@ -46,7 +49,7 @@ with st.sidebar:
 
 # IF file_data IS NOT FOUND, or webmind disabled, RENDER INITIAL *WELCOME PAGE*
 if "validated_url" not in st.session_state or st.session_state.webmind_enabled == False:
-    st.session_state.chat_history = []
+    st.session_state.chat_history_webmind = []
     st.session_state.validated_url = ""
 
     st.header("🌐 Welcome to WebMind", divider="blue")
@@ -70,18 +73,21 @@ if "validated_url" not in st.session_state or st.session_state.webmind_enabled =
 # RENDERS CHAT-ENABLED INTERFACE
 else:
     st.header("🌐  WebMind", divider="blue")
-    st.badge("URL Processed", icon=":material/check:", color="green")
-    helpers.load_chat_history("documind")
+    st.markdown(
+        f":green-badge[:material/check: URL Accessed] "
+        f":blue-badge[{st.session_state.validated_url}]"
+    )
+    helpers.load_chat_history("webmind")
 
     if user_input:
-        helpers.send_message("user", user_input, "documind")
+        helpers.send_message("user", user_input, "webmind")
         # generate AI Response
         with st.spinner("thinking..", show_time=True):
             ai_response = openai_service.get_openai_response(
-                user_input, st.session_state.chat_history
+                user_input, st.session_state.chat_history_webmind
             )
         # add AI response to chat_history
-        st.session_state.chat_history.append(
+        st.session_state.chat_history_webmind.append(
             {"role": "assistant", "content": ai_response}
         )
         # markdown AI response

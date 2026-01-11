@@ -17,6 +17,10 @@ def load_chat_history(mode):
         for message in st.session_state.chat_history:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
+    elif mode == "webmind":
+        for message in st.session_state.chat_history_webmind:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
 
 
 # DELETES CHAT HISTORY FROM st.session_state.chat_history
@@ -41,13 +45,14 @@ def send_message(role, message, mode):
         # MARKDOWN DOWN THE MESSAGE
         with st.chat_message(role):
             st.markdown(cleaned_msg)
+
     elif mode == "webmind":
         # APPEND THE MESSAGE TO st.session_state.chat_history
-        st.session_state.chat_history.webmind.append(
+        st.session_state.chat_history_webmind.append(
             {"role": role, "content": cleaned_msg}
         )
         # MARKDOWN DOWN THE MESSAGE
-        with st.chat_message.webmind(role):
+        with st.chat_message(role):
             st.markdown(cleaned_msg)
 
 

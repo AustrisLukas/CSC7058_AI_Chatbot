@@ -71,7 +71,6 @@ else:
     helpers.load_chat_history("documind")
 
     if user_input:
-
         helpers.send_message("user", user_input, "documind")
         # generate AI Response
         with st.spinner("thinking..", show_time=True):
@@ -85,13 +84,3 @@ else:
         # markdown AI response
         with st.chat_message("assistant"):
             st.markdown(ai_response)
-
-
-def send_message():
-
-    msg_to_send = st.session_state.message.strip()
-
-    if not msg_to_send:
-        return
-
-    st.session_state.chat_history.append({"role": "user", "content": msg_to_send})
