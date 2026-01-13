@@ -36,8 +36,18 @@ with st.sidebar:
             use_container_width=True,
             on_click=lambda: data_utils.view_pdf(st.session_state.file_data),
         )
-        st.button("Clear Chat", use_container_width=True, on_click=helpers.clear_chat)
-        st.button("Reset Chat", use_container_width=True, on_click=helpers.reset_chat)
+        st.button(
+            "Clear Chat",
+            use_container_width=True,
+            on_click=helpers.clear_chat,
+            args=("documind",),
+        )
+        st.button(
+            "Reset Chat",
+            use_container_width=True,
+            on_click=helpers.reset_chat,
+            args=("documind",),
+        )
 
 
 #   ---***--- MAIN SECTION ---***---

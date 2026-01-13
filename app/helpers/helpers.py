@@ -24,16 +24,24 @@ def load_chat_history(mode):
 
 
 # DELETES CHAT HISTORY FROM st.session_state.chat_history
-def clear_chat():
-    st.session_state.chat_history = []
+def clear_chat(mode):
+    if mode == "documind":
+        st.session_state.chat_history = []
+    elif mode == "webmind":
+        st.session_state.chat_history_webmind = []
 
 
 # DELETES ATTACHED FILE, CHAT HISTORY, AND DISABLES CHAT INPUT ELEMENT
-def reset_chat():
-    if "file_data" in st.session_state:
-        del st.session_state["file_data"]
-        st.session_state.chat_history = []
-        st.session_state.chat_enabled = False
+def reset_chat(mode):
+    if mode == "documind":
+        if "file_data" in st.session_state:
+            del st.session_state["file_data"]
+            clear_chat("documind")
+            st.session_state.chat_enabled = False
+    elif mode == "webmind":
+        st.session_state.validated_url = ""
+        clear_chat("webmind")
+        st.session_state.webmind_enabled = False
 
 
 def send_message(role, message, mode):
@@ -75,3 +83,12 @@ def process_GO():
         enabable_webmind_chat()
     else:
         logger.error("Input URL is not valid")
+
+
+def truncate(text, max_len):
+    return text if len(text) <= max_len else text[:max_len] + "..."
+
+
+@st.dialog("Active URL")
+def view_URL():
+    st.write(st.session_state.validated_url)

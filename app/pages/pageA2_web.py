@@ -30,18 +30,21 @@ with st.sidebar:
     ):
         st.header("References", divider="red")
         st.write("references here")
-        st.header("Active Document", divider="violet")
-        st.write("url")
-        st.button(
-            "View Document",
-            use_container_width=True,
-        )
+        st.header("Active URL", divider="violet")
+        st.write(helpers.truncate(st.session_state.validated_url, 100))
+        st.button("View URL", use_container_width=True, on_click=helpers.view_URL)
         st.button(
             "Clear Chat",
             use_container_width=True,
             on_click=helpers.clear_chat,
+            args=("webmind",),
         )
-        st.button("Reset Chat", use_container_width=True, on_click=helpers.reset_chat)
+        st.button(
+            "Reset Chat",
+            use_container_width=True,
+            on_click=helpers.reset_chat,
+            args=("webmind",),
+        )
 
 
 #   ---***--- MAIN SECTION ---***---
