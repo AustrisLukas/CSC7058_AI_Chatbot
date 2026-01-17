@@ -17,7 +17,7 @@ pages = {
     ],
     "Settings": [
         st.Page("pages/pageB1_something.py", title="⚙️ User Preferences"),
-        st.Page("pages/pageB2_something.py", title="⚙️ AI Behaviour"),
+        st.Page("pages/pageB2_AIBehaviour.py", title="⚙️ AI Behaviour"),
     ],
 }
 
