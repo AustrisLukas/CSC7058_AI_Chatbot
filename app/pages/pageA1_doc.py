@@ -4,6 +4,7 @@ import json
 from streamlit_pdf_viewer import pdf_viewer
 from helpers import data_utils
 from helpers import helpers
+from services.openai_service import OpenAIServiceError
 
 
 # PAGE CONFIG
@@ -82,15 +83,11 @@ else:
 
     if user_input:
         helpers.send_message("user", user_input, "documind")
-        # generate AI Response
         with st.spinner("thinking..", show_time=True):
-            ai_response = openai_service.get_openai_response(
-                user_input, st.session_state.chat_history
-            )
-        # add AI response to chat_history
-        st.session_state.chat_history.append(
-            {"role": "assistant", "content": ai_response}
-        )
-        # markdown AI response
-        with st.chat_message("assistant"):
-            st.markdown(ai_response)
+            try:
+                ai_response = helpers.get_AI_response(user_input, "documind")
+                helpers.send_message("assistant", ai_response, "documind")
+            except OpenAIServiceError as e:
+                st.error(str(e))
+            except Exception as e:
+                st.error(f"Something went wrong..  \n {e}")

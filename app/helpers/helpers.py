@@ -1,13 +1,21 @@
 import streamlit as st
 from urllib.parse import urlparse
 import logging
+from services import openai_service
 
 logger = logging.getLogger(__name__)
 
 
 # ENABLES CHAT FOR USER INPUT
 def enable_chat():
+    logger.info("Documind enabled")
     st.session_state.chat_enabled = True
+
+
+# ENABLES WEBMIND CHAT
+def enabable_webmind_chat():
+    logger.info("Webmind enabled")
+    st.session_state.webmind_enabled = True
 
 
 # POPULATES CHAT ELEMENT WITH MESSAGES FROM st.session_state.chat_history
@@ -44,13 +52,15 @@ def reset_chat(mode):
         st.session_state.webmind_enabled = False
 
 
+# SANITISES AND APPENDS MESSAGE TO CHAT HISTORY, THEN DISPLAYS IN THE CHAT WINDOW
 def send_message(role, message, mode):
+    # CLEAN MESSAGE
     cleaned_msg = message.strip()
 
     if mode == "documind":
         # APPEND THE MESSAGE TO st.session_state.chat_history
         st.session_state.chat_history.append({"role": role, "content": cleaned_msg})
-        # MARKDOWN DOWN THE MESSAGE
+        # DISPLAY THE MESSAGE
         with st.chat_message(role):
             st.markdown(cleaned_msg)
 
@@ -59,9 +69,21 @@ def send_message(role, message, mode):
         st.session_state.chat_history_webmind.append(
             {"role": role, "content": cleaned_msg}
         )
-        # MARKDOWN DOWN THE MESSAGE
+        # DISPLAY THE MESSAGE
         with st.chat_message(role):
             st.markdown(cleaned_msg)
+
+
+# CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
+def get_AI_response(user_input, mode):
+    if mode == "documind":
+        return openai_service.get_openai_response(
+            user_input, st.session_state.chat_history
+        )
+    elif mode == "webmind":
+        return openai_service.get_openai_response(
+            user_input, st.session_state.chat_history_webmind
+        )
 
 
 # CHECKS URL VALIDITY BY CONFIRMING HAS HAS SCHEME AND DOMAIN. BOTH MUST BE TRUE
@@ -70,11 +92,6 @@ def is_valid_url(url: str) -> bool:
     has_scheme = parsed.scheme in ("http", "https")
     has_domain = parsed.netloc != ""
     return has_scheme and has_domain
-
-
-def enabable_webmind_chat():
-    logger.info("WebMind enabled")
-    st.session_state.webmind_enabled = True
 
 
 def process_GO():
