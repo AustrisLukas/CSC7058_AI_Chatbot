@@ -58,7 +58,7 @@ if "validated_url" not in st.session_state or st.session_state.webmind_enabled =
 
     st.header("🌐 Welcome to WebMind", divider="blue")
     st.subheader("Upload a URL to activate the chat and start asking questions.")
-    st.write("Web provides clear, context-aware insights from your content.")
+    st.write("WebMind provides clear, context-aware insights from your content.")
 
     col1, col2 = st.columns([5, 5])
 
