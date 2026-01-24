@@ -28,10 +28,17 @@ else:
 # DISPLAY CHAT CONTROL SECTION IN THE SIDEBAR IF A VALID DOCUMENT IS UPLOADED
 with st.sidebar:
     if "chat_enabled" in st.session_state and st.session_state.chat_enabled == True:
-        st.header("References", divider="red")
-        st.write("references here")
-        st.header("Active Document", divider="violet")
-        st.write(st.session_state.file_name)
+        with st.popover("Start New Document", use_container_width=True):
+            st.markdown("### ⚠️ End Current Session?")
+            st.markdown(
+                "This will end your current document session and clear all chat context. "
+                "You won’t be able to recover this session once it’s reset."
+            )
+            st.button(
+                "Start New Document",
+                on_click=helpers.reset_chat,
+                args=("documind",),
+            )
         st.button(
             "View Document",
             use_container_width=True,
@@ -43,13 +50,10 @@ with st.sidebar:
             on_click=helpers.clear_chat,
             args=("documind",),
         )
-        st.button(
-            "Reset Chat",
-            use_container_width=True,
-            on_click=helpers.reset_chat,
-            args=("documind",),
-        )
-
+        st.header("References", divider="red")
+        st.write("references here")
+        st.header("Active Document", divider="violet")
+        st.write(st.session_state.file_name)
 
 #   ---***--- MAIN SECTION ---***---
 # CHECK FOR THE PRESENSE OF UPLOADED AND PROCESSED (in bytes) FILE IN session_state AS 'file_data'
