@@ -29,10 +29,17 @@ with st.sidebar:
         "webmind_enabled" in st.session_state
         and st.session_state.webmind_enabled == True
     ):
-        st.header("References", divider="red")
-        st.write("references here")
-        st.header("Active URL", divider="violet")
-        st.write(helpers.truncate(st.session_state.validated_url, 100))
+        with st.popover("Start New Document", use_container_width=True):
+            st.markdown("### ⚠️ End Web Session?")
+            st.markdown(
+                "This will end your current WebMind session and clear all chat context. "
+                "You won’t be able to recover this session once it’s reset."
+            )
+            st.button(
+                "Start New WebMind Session",
+                on_click=helpers.reset_chat,
+                args=("webmind",),
+            )
         st.button("View URL", use_container_width=True, on_click=helpers.view_URL)
         st.button(
             "Clear Chat",
@@ -40,13 +47,10 @@ with st.sidebar:
             on_click=helpers.clear_chat,
             args=("webmind",),
         )
-        st.button(
-            "Reset Chat",
-            use_container_width=True,
-            on_click=helpers.reset_chat,
-            args=("webmind",),
-        )
-
+        st.header("References", divider="red")
+        st.write("references here")
+        st.header("Active URL", divider="violet")
+        st.write(helpers.truncate(st.session_state.validated_url, 100))
 
 #   ---***--- MAIN SECTION ---***---
 # CHECK FOR THE PRESENSE OF UPLOADED AND PROCESSED (in bytes) FILE IN session_state AS 'file_data'
