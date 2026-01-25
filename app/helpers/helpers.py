@@ -42,8 +42,8 @@ def clear_chat(mode):
 # DELETES ATTACHED FILE, CHAT HISTORY, AND DISABLES CHAT INPUT ELEMENT
 def reset_chat(mode):
     if mode == "documind":
-        if "file_data" in st.session_state:
-            del st.session_state["file_data"]
+        if "stored_file_data" in st.session_state:
+            del st.session_state["stored_file_data"]
             clear_chat("documind")
             st.session_state.chat_enabled = False
     elif mode == "webmind":
