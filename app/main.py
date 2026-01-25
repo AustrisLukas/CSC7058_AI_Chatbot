@@ -16,7 +16,7 @@ pages = {
         st.Page("pages/pageA4_doc_early.py", title="DocuMind_early"),
     ],
     "Settings": [
-        st.Page("pages/pageB1_something.py", title="⚙️ User Preferences"),
+        st.Page("pages/pageB1_settings.py", title="⚙️ User Preferences"),
         st.Page("pages/pageB2_AIBehaviour.py", title="⚙️ AI Behaviour"),
     ],
 }

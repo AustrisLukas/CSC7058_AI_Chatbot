@@ -42,7 +42,7 @@ with st.sidebar:
         st.button(
             "View Document",
             use_container_width=True,
-            on_click=lambda: data_utils.view_pdf(st.session_state.file_data),
+            on_click=lambda: data_utils.view_pdf(st.session_state.stored_file_data),
         )
         st.button(
             "Clear Chat",
@@ -53,13 +53,13 @@ with st.sidebar:
         st.header("References", divider="red")
         st.write("references here")
         st.header("Active Document", divider="violet")
-        st.write(st.session_state.file_name)
+        st.write(st.session_state.stored_file.name)
 
 #   ---***--- MAIN SECTION ---***---
 # CHECK FOR THE PRESENSE OF UPLOADED AND PROCESSED (in bytes) FILE IN session_state AS 'file_data'
 
 # IF file_data IS NOT FOUND, RENDER INITIAL *WELCOME PAGE*
-if "file_data" not in st.session_state:
+if "stored_file_data" not in st.session_state:
     st.session_state.chat_history = []
     st.header("📚 Welcome to DocuMind", divider="red")
     st.subheader("Upload a document to activate the chat and start asking questions.")
@@ -81,7 +81,7 @@ else:
     st.header("📚 DocuMind", divider="red")
     st.markdown(
         f":green-badge[:material/check: Uploaded] "
-        f":blue-badge[{st.session_state.file_name}]"
+        f":blue-badge[{st.session_state.stored_file.name}]"
     )
     helpers.load_chat_history("documind")
 
