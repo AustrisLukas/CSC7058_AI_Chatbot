@@ -6,10 +6,14 @@ from pathlib import Path
 import re
 import docx
 import pandas as pd
+import logging
 
 
 class DocumentExtractionError(Exception):
     pass
+
+
+logger = logging.getLogger(__name__)
 
 
 @st.dialog("Uploaded Document")
@@ -27,17 +31,26 @@ def process_upload():
         helpers.enable_chat()
         file_type = detect_file_type(st.session_state.stored_file)
 
-        if file_type == "pdf":
-            st.session_state.extracted_text = extract_pdf(uploaded_file)
+        try:
+            if file_type == "pdf":
+                st.session_state.extracted_text = extract_pdf(uploaded_file)
 
-        if file_type == "word":
-            st.session_state.extracted_text = extract_docx(uploaded_file)
+            if file_type == "word":
+                st.session_state.extracted_text = extract_docx(uploaded_file)
 
-        if file_type == "csv":
-            st.session_state.extracted_text = extract_csv(uploaded_file)
+            if file_type == "csv":
+                st.session_state.extracted_text = extract_csv(uploaded_file)
 
-        if file_type == "excel":
-            st.session_state.extracted_text = extract_excel(uploaded_file)
+            if file_type == "excel":
+                st.session_state.extracted_text = extract_excel(uploaded_file)
+        except DocumentExtractionError as e:
+            logging.error(f"Error while processing document upload: {e}")
+            st.session_state.doc_upload_error = True
+            st.session_state.doc_upload_error_msg = e
+            helpers.reset_chat("documind")
+
+        except Exception as e:
+            print("Caught a generic error while extracting document")
 
 
 def detect_file_type(file):
@@ -88,42 +101,63 @@ def extract_pdf(file):
         text = text.strip()
 
         if not text:
-            raise DocumentExtractionError("No text could be extraxted from PDF")
+            raise DocumentExtractionError("No text could be extracted from the PDF.")
         return text
     except Exception as e:
-        raise DocumentExtractionError(f"Failed to extract PDF: {e}") from e
+        raise DocumentExtractionError(f"Document Processing Error: {e}") from e
 
 
 def extract_docx(doc):
-    doc = docx.Document(doc)
-    text = ""
-    for p in doc.paragraphs:
-        if p.text:
-            text += p.text + " "
+    try:
+        doc = docx.Document(doc)
+        text = ""
+        for p in doc.paragraphs:
+            if p.text:
+                text += p.text + " "
 
-    text = text.replace("\n", " ")  # MERGE LINES
-    text = re.sub(r"\s", " ", text)  # COLLAPSE MULTIPLE SPACES
+        text = text.replace("\n", " ")  # MERGE LINES
+        text = re.sub(r"\s", " ", text)  # COLLAPSE MULTIPLE SPACES
 
-    return text
+        if not text:
+            raise DocumentExtractionError(
+                "No text could be extracted from the document."
+            )
+        return text
+    except Exception as e:
+        raise DocumentExtractionError(f"Document Processing Error: {e}") from e
 
 
 def extract_csv(file):
-    text = ""
-    file.seek(0)  # set reader pointer to 0
-    df = pd.read_csv(file)
-    df = df.fillna("")  # fill empty cells with string
-    df = df.astype(str)  # ensure all data types are string
-    text = " ".join(df.agg(" ".join, axis=1))  # combine in one string
 
-    return text
+    try:
+        text = ""
+        file.seek(0)  # set reader pointer to 0
+        df = pd.read_csv(file)
+        df = df.fillna("")  # fill empty cells with string
+        df = df.astype(str)  # ensure all data types are string
+        text = " ".join(df.agg(" ".join, axis=1))  # combine in one string
+
+        if not text:
+            raise DocumentExtractionError(
+                "No text could be extracted from the CSV file."
+            )
+        return text
+    except Exception as e:
+        raise DocumentExtractionError(f"Document Processing Error: {e}") from e
 
 
 def extract_excel(file):
-    text = ""
-    file.seek(0)
-    df = pd.read_excel(file)
-    df = df.fillna("")  # fill empty cells with string
-    df = df.astype(str)  # ensure all data types are string
-    text = " ".join(df.agg(" ".join, axis=1))  # combine in one string
-
-    return text
+    try:
+        text = ""
+        file.seek(0)  # reset file read to start
+        df = pd.read_excel(file)
+        df = df.fillna("")  # fill empty cells with string
+        df = df.astype(str)  # ensure all data types are string
+        text = " ".join(df.agg(" ".join, axis=1))  # combine in one string
+        if not text:
+            raise DocumentExtractionError(
+                "No text could be extracted from the excel file"
+            )
+        return text
+    except Exception as e:
+        raise DocumentExtractionError(f"Document Processing Error:{e}") from e
