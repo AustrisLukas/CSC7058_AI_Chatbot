@@ -13,6 +13,10 @@ st.set_page_config(
     page_icon="app/assets/images/favicon_v2.png",
     layout="wide",
 )
+# FLAG FOR DOCUMENT UPLOAD ERROR
+if "doc_upload_error" not in st.session_state:
+    st.session_state.doc_upload_error = False
+    st.session_state.doc_upload_error_msg = ""
 
 # CREATE A CHAT INPUT ELEMENT AND DISABLE INPUT IF st.chat_enabled=False
 if "chat_enabled" in st.session_state and st.session_state.chat_enabled == True:
@@ -74,6 +78,13 @@ if "stored_file_data" not in st.session_state:
             key="uploaded_file",
             on_change=data_utils.process_upload,
         )
+        if st.session_state.doc_upload_error == True:
+            st.error(
+                f"**{st.session_state.doc_upload_error_msg}**\n \n"
+                "Please try uploading a different document.",
+                icon="⚠️",
+            )
+
 
 # ELSE PATHWAY IF st.session_state.file_data IS FOUND.
 # RENDERS CHAT-ENABLED INTERFACE
