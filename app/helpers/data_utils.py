@@ -1,16 +1,14 @@
 import streamlit as st
 from streamlit_pdf_viewer import pdf_viewer
-from helpers import helpers
-from pypdf import PdfReader
+
+# from helpers import helpers
 from pathlib import Path
 import re
+from pypdf import PdfReader
 import docx
 import pandas as pd
 import logging
-
-
-class DocumentExtractionError(Exception):
-    pass
+from .exceptions import DocumentExtractionError
 
 
 logger = logging.getLogger(__name__)
@@ -19,39 +17,6 @@ logger = logging.getLogger(__name__)
 @st.dialog("Uploaded Document")
 def view_pdf(file):
     pdf_viewer(file)
-
-
-def process_upload():
-    st.session_state.extracted_text = ""
-    uploaded_file = st.session_state.get("uploaded_file")
-    if uploaded_file:
-        st.session_state.stored_file = uploaded_file
-        st.session_state.stored_file_data = uploaded_file.read()
-        # st.session_state.file_name = uploaded_file.name
-
-        try:
-            file_type = detect_file_type(st.session_state.stored_file)
-            if file_type == "pdf":
-                st.session_state.extracted_text = extract_pdf(uploaded_file)
-
-            if file_type == "word":
-                st.session_state.extracted_text = extract_docx(uploaded_file)
-
-            if file_type == "csv":
-                st.session_state.extracted_text = extract_csv(uploaded_file)
-
-            if file_type == "excel":
-                st.session_state.extracted_text = extract_excel(uploaded_file)
-
-            helpers.enable_chat()
-        except DocumentExtractionError as e:
-            logging.error(f"Error while processing document upload: {e}")
-            st.session_state.doc_upload_error = True
-            st.session_state.doc_upload_error_msg = e
-            helpers.reset_chat("documind")
-
-        except Exception as e:
-            print("Caught a generic error while extracting document")
 
 
 def detect_file_type(file):
@@ -90,6 +55,7 @@ def detect_file_type(file):
 
 
 def extract_pdf(file):
+    print("extracting pdf.....")
     try:
         reader = PdfReader(file)
         text = ""
@@ -102,7 +68,7 @@ def extract_pdf(file):
         text = text.strip()
 
         if not text:
-            raise DocumentExtractionError("No text could be extracted from the PDF.")
+            raise DocumentExtractionError("No text could be extracted from the PDF")
         return text
     except Exception as e:
         raise DocumentExtractionError(f"Document Processing Error: {e}") from e
@@ -121,7 +87,7 @@ def extract_docx(doc):
 
         if not text:
             raise DocumentExtractionError(
-                "No text could be extracted from the document."
+                "No text could be extracted from the document"
             )
         return text
     except Exception as e:
@@ -161,4 +127,4 @@ def extract_excel(file):
             )
         return text
     except Exception as e:
-        raise DocumentExtractionError(f"Document Processing Error:{e}") from e
+        raise DocumentExtractionError(f"Document Processing Error: {e}") from e

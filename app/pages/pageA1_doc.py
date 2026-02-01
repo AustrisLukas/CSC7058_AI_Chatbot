@@ -76,7 +76,7 @@ if "stored_file_data" not in st.session_state:
             type=["pdf", "docx", "xlsx", "csv"],
             accept_multiple_files=False,
             key="uploaded_file",
-            on_change=data_utils.process_upload,
+            on_change=helpers.process_upload,
         )
         if st.session_state.doc_upload_error == True:
             st.error(
