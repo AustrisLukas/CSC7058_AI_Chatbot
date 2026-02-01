@@ -6,6 +6,10 @@ from services import openai_service
 logger = logging.getLogger(__name__)
 
 
+class URLValidationError(Exception):
+    pass
+
+
 # ENABLES CHAT FOR USER INPUT
 def enable_chat():
     logger.info("Documind enabled")
@@ -95,11 +99,17 @@ def is_valid_url(url: str) -> bool:
 
 
 def process_GO():
-    if is_valid_url(st.session_state.get("input_url")):
-        st.session_state.validated_url = st.session_state.get("input_url")
-        enabable_webmind_chat()
-    else:
-        logger.error("Input URL is not valid")
+    try:
+        if is_valid_url(st.session_state.get("input_url")):
+            st.session_state.validated_url = st.session_state.get("input_url")
+            st.session_state.webmind_invalid_URL_error = ""
+            enabable_webmind_chat()
+        else:
+            logger.error("URL format is not valid.")
+            raise URLValidationError("The provided URL is not a valid format.")
+    except URLValidationError as e:
+        st.session_state.webmind_invalid_URL_error = True
+        st.session_state.webmind_invalid_URL_error_msg = e
 
 
 def truncate(text, max_len):
