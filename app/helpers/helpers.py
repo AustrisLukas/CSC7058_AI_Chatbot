@@ -2,12 +2,16 @@ import streamlit as st
 from urllib.parse import urlparse
 import logging
 from services import openai_service
+from helpers import data_utils
+from .exceptions import DocumentExtractionError
 
-logger = logging.getLogger(__name__)
 
-
+# ****** MOVE TO EXCEPTIONS
 class URLValidationError(Exception):
     pass
+
+
+logger = logging.getLogger(__name__)
 
 
 # ENABLES CHAT FOR USER INPUT
@@ -76,6 +80,46 @@ def send_message(role, message, mode):
         # DISPLAY THE MESSAGE
         with st.chat_message(role):
             st.markdown(cleaned_msg)
+
+
+def process_upload():
+    st.session_state.extracted_text = ""
+    uploaded_file = st.session_state.get("uploaded_file")
+    if uploaded_file:
+        st.session_state.stored_file = uploaded_file
+        st.session_state.stored_file_data = uploaded_file.read()
+        # st.session_state.file_name = uploaded_file.name
+
+        try:
+            file_type = data_utils.detect_file_type(st.session_state.stored_file)
+            if file_type == "pdf":
+                st.session_state.extracted_text = data_utils.extract_pdf(uploaded_file)
+
+            if file_type == "word":
+                st.session_state.extracted_text = data_utils.extract_docx(uploaded_file)
+
+            if file_type == "csv":
+                st.session_state.extracted_text = data_utils.extract_csv(uploaded_file)
+
+            if file_type == "excel":
+                st.session_state.extracted_text = data_utils.extract_excel(
+                    uploaded_file
+                )
+            # enable chat if extraction was sucesful
+            if st.session_state.extracted_text:
+                enable_chat()
+                st.session_state.doc_upload_error = False
+                st.session_state.doc_upload_error_msg = ""
+
+        except DocumentExtractionError as e:
+            logging.error(f"Error while processing document upload: {e}")
+            st.session_state.doc_upload_error = True
+            st.session_state.doc_upload_error_msg = e
+            reset_chat("documind")
+
+        except Exception as e:
+            print("Caught a generic error while extracting document")
+            print(e)
 
 
 # CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
