@@ -14,6 +14,10 @@ st.set_page_config(
     layout="wide",
 )
 
+if "webmind_invalid_URL_error" not in st.session_state:
+    st.session_state.webmind_invalid_URL_error = False
+    st.session_state.webmind_invalid_URL_error_msg = ""
+
 # CREATE A CHAT INPUT ELEMENT AND DISABLE INPUT IF st.chat_enabled=False
 if "webmind_enabled" in st.session_state and st.session_state.webmind_enabled == True:
     user_input = st.chat_input("Type your question..")
@@ -74,6 +78,13 @@ if "validated_url" not in st.session_state or st.session_state.webmind_enabled =
             label_visibility="collapsed",
             placeholder="https://",
         )
+        if st.session_state.webmind_invalid_URL_error == True:
+            st.error(
+                f"**{st.session_state.webmind_invalid_URL_error_msg}**\n \n"
+                "Please check the URL and try again.",
+                icon="⚠️",
+            )
+
     with col2:
         st.button("Go!", on_click=helpers.process_GO)
 

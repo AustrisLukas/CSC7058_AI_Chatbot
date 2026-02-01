@@ -28,10 +28,9 @@ def process_upload():
         st.session_state.stored_file = uploaded_file
         st.session_state.stored_file_data = uploaded_file.read()
         # st.session_state.file_name = uploaded_file.name
-        helpers.enable_chat()
-        file_type = detect_file_type(st.session_state.stored_file)
 
         try:
+            file_type = detect_file_type(st.session_state.stored_file)
             if file_type == "pdf":
                 st.session_state.extracted_text = extract_pdf(uploaded_file)
 
@@ -43,6 +42,8 @@ def process_upload():
 
             if file_type == "excel":
                 st.session_state.extracted_text = extract_excel(uploaded_file)
+
+            helpers.enable_chat()
         except DocumentExtractionError as e:
             logging.error(f"Error while processing document upload: {e}")
             st.session_state.doc_upload_error = True
