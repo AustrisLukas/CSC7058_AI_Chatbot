@@ -55,7 +55,6 @@ def detect_file_type(file):
 
 
 def extract_pdf(file):
-    print("extracting pdf.....")
     try:
         reader = PdfReader(file)
         text = ""
@@ -68,6 +67,7 @@ def extract_pdf(file):
         text = text.strip()
 
         if not text:
+            print(text)
             raise DocumentExtractionError("No text could be extracted from the PDF")
         return text
     except Exception as e:
@@ -99,7 +99,7 @@ def extract_csv(file):
     try:
         text = ""
         file.seek(0)  # set reader pointer to 0
-        df = pd.read_csv(file)
+        df = pd.read_csv(file, header=None)
         df = df.fillna("")  # fill empty cells with string
         df = df.astype(str)  # ensure all data types are string
         text = " ".join(df.agg(" ".join, axis=1))  # combine in one string
@@ -117,7 +117,7 @@ def extract_excel(file):
     try:
         text = ""
         file.seek(0)  # reset file read to start
-        df = pd.read_excel(file)
+        df = pd.read_excel(file, header=None)
         df = df.fillna("")  # fill empty cells with string
         df = df.astype(str)  # ensure all data types are string
         text = " ".join(df.agg(" ".join, axis=1))  # combine in one string

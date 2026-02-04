@@ -15,6 +15,7 @@ def test_extract_pdf_returns_text():
 def test_extract_pdf_contains_expected_word():
     with open("tests/fixtures/sample_pdf.pdf", "rb") as file:
         text = extract_pdf(file)
+        print(text)
 
         assert "sample" in text.lower()
         assert "text" in text.lower()
@@ -23,5 +24,5 @@ def test_extract_pdf_contains_expected_word():
 def test_extract_pdf_empty():
     # Use a sample empty or invalid PDF in your fixtures
     with pytest.raises(DocumentExtractionError):
-        with open("tests/fixtures/sample_pdf.pdf", "rb") as file:
+        with open("tests/fixtures/empty_pdf.pdf", "rb") as file:
             extract_pdf(file)
