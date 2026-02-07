@@ -73,7 +73,7 @@ if "stored_file_data" not in st.session_state:
         st.file_uploader(
             "document_upload",
             label_visibility="hidden",
-            type=["pdf", "docx", "xlsx", "csv"],
+            type=["pdf", "docx", "xlsx", "csv", "pptx"],
             accept_multiple_files=False,
             key="uploaded_file",
             on_change=helpers.process_upload,
