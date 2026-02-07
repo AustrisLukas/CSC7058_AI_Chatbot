@@ -9,6 +9,7 @@ import docx
 import pandas as pd
 import logging
 from .exceptions import DocumentExtractionError
+from pptx import Presentation
 
 
 logger = logging.getLogger(__name__)
@@ -124,6 +125,29 @@ def extract_excel(file):
         if not text:
             raise DocumentExtractionError(
                 "No text could be extracted from the excel file"
+            )
+        return text
+    except Exception as e:
+        raise DocumentExtractionError(f"Document Processing Error: {e}") from e
+
+
+def extract_pptx(file):
+
+    prs = Presentation(file)
+
+    text = ""
+
+    try:
+        for slide in prs.slides:
+            for shape in slide.shapes:
+                if not shape.has_text_frame:
+                    continue
+                for paragraph in shape.text_frame.paragraphs:
+                    for run in paragraph.runs:
+                        text += run.text + " "
+        if not text:
+            raise DocumentExtractionError(
+                "No text could be extracted from the power point file"
             )
         return text
     except Exception as e:

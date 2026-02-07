@@ -95,21 +95,28 @@ def process_upload():
             if file_type == "pdf":
                 st.session_state.extracted_text = data_utils.extract_pdf(uploaded_file)
 
-            if file_type == "word":
+            elif file_type == "word":
                 st.session_state.extracted_text = data_utils.extract_docx(uploaded_file)
 
-            if file_type == "csv":
+            elif file_type == "csv":
                 st.session_state.extracted_text = data_utils.extract_csv(uploaded_file)
 
-            if file_type == "excel":
+            elif file_type == "excel":
                 st.session_state.extracted_text = data_utils.extract_excel(
                     uploaded_file
                 )
+            elif file_type == "powerpoint":
+                print("extract pptx")
+                st.session_state.extracted_text = data_utils.extract_pptx(uploaded_file)
             # enable chat if extraction was sucesful
             if st.session_state.extracted_text:
                 enable_chat()
                 st.session_state.doc_upload_error = False
                 st.session_state.doc_upload_error_msg = ""
+            else:
+                print(
+                    f"session_state.extracted_text = {st.session_state.extracted_text}"
+                )
 
         except DocumentExtractionError as e:
             logging.error(f"Error while processing document upload: {e}")
