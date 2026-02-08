@@ -20,7 +20,7 @@ def test_extract_docx_contains_expected_word():
         assert "text" in text.lower()
 
 
-# TEST CASE TO VERIFY EXCEPTION IS THROWN WHEN NOTHING IS EXTRACTED
+# TEST CASE TO VERIFY AN EXCEPTION IS THROWN WHEN NOTHING IS EXTRACTED
 def test_extract_docx_empty():
     with pytest.raises(DocumentExtractionError):
         with open("tests/fixtures/empty_doc.docx", "rb") as file:
