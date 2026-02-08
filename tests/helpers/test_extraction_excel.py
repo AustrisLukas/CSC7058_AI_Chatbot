@@ -22,8 +22,8 @@ def test_extract_excel_contains_expected_word():
         assert "data2" in text.lower()
 
 
+# TEST CASE TO VERIFY AN EXCEPTION IS THROWN WHEN NOTHING IS EXTRACTED
 def test_extract_excel_empty():
-    # Use a sample empty or invalid PDF in your fixtures
     with pytest.raises(DocumentExtractionError):
         with open("tests/fixtures/empty_xlsx.xlsx", "rb") as file:
             extract_excel(file)

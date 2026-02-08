@@ -46,7 +46,7 @@ with st.sidebar:
         st.button(
             "View Document",
             use_container_width=True,
-            on_click=lambda: data_utils.view_pdf(st.session_state.stored_file_data),
+            on_click=lambda: helpers.view_document(),
         )
         st.button(
             "Clear Chat",

@@ -4,6 +4,10 @@ import logging
 from services import openai_service
 from helpers import data_utils
 from .exceptions import DocumentExtractionError
+from ui.render_docx import render_docx
+from ui.render_excel import render_excel
+from ui.render_powerpoint import render_powerpoint
+from ui.render_pdf import render_pdf
 
 
 # ****** MOVE TO EXCEPTIONS
@@ -12,6 +16,24 @@ class URLValidationError(Exception):
 
 
 logger = logging.getLogger(__name__)
+
+
+@st.dialog("Uploaded Document")
+def view_document():
+    try:
+        st.subheader(body=st.session_state.stored_file.name, divider="grey")
+        document_type = data_utils.detect_file_type(st.session_state.stored_file)
+        if document_type == "pdf":
+            render_pdf()
+        elif document_type == "word":
+            render_docx()
+        elif document_type == "excel":
+            render_excel()
+        elif document_type == "powerpoint":
+            render_powerpoint()
+
+    except Exception as e:
+        st.error(f"**Error ocurred while rendering the document:** \n\n {e}")
 
 
 # ENABLES CHAT FOR USER INPUT

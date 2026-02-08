@@ -1,6 +1,3 @@
-import streamlit as st
-from streamlit_pdf_viewer import pdf_viewer
-
 # from helpers import helpers
 from pathlib import Path
 import re
@@ -13,11 +10,6 @@ from pptx import Presentation
 
 
 logger = logging.getLogger(__name__)
-
-
-@st.dialog("Uploaded Document")
-def view_pdf(file):
-    pdf_viewer(file)
 
 
 def detect_file_type(file):
