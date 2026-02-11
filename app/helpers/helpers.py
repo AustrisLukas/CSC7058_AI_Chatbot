@@ -114,7 +114,7 @@ def process_upload():
         st.session_state.stored_file_data = uploaded_file.read()
         try:
             with st.spinner("Exatracting text from document.."):
-                time.sleep(3)
+                time.sleep(1)
                 st.session_state.extracted_text = document_service.extract_text(
                     st.session_state.stored_file
                 )
