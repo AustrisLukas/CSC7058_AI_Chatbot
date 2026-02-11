@@ -8,6 +8,8 @@ from ui.render_docx import render_docx
 from ui.render_excel import render_excel
 from ui.render_powerpoint import render_powerpoint
 from ui.render_pdf import render_pdf
+from helpers import document_service
+import time
 
 
 # ****** MOVE TO EXCEPTIONS
@@ -110,36 +112,19 @@ def process_upload():
     if uploaded_file:
         st.session_state.stored_file = uploaded_file
         st.session_state.stored_file_data = uploaded_file.read()
-        # st.session_state.file_name = uploaded_file.name
-
         try:
-            file_type = data_utils.detect_file_type(st.session_state.stored_file)
-            if file_type == "pdf":
-                st.session_state.extracted_text = data_utils.extract_pdf(uploaded_file)
-
-            elif file_type == "word":
-                st.session_state.extracted_text = data_utils.extract_docx(uploaded_file)
-
-            elif file_type == "csv":
-                st.session_state.extracted_text = data_utils.extract_csv(uploaded_file)
-
-            elif file_type == "excel":
-                st.session_state.extracted_text = data_utils.extract_excel(
-                    uploaded_file
+            with st.spinner("Exatracting text from document.."):
+                time.sleep(1)
+                st.session_state.extracted_text = document_service.extract_text(
+                    st.session_state.stored_file
                 )
-            elif file_type == "powerpoint":
-                print("extract pptx")
-                st.session_state.extracted_text = data_utils.extract_pptx(uploaded_file)
+            with st.spinner("Generating embeddings.."):
+                time.sleep(3)
             # enable chat if extraction was sucesful
             if st.session_state.extracted_text:
                 enable_chat()
                 st.session_state.doc_upload_error = False
                 st.session_state.doc_upload_error_msg = ""
-            else:
-                print(
-                    f"session_state.extracted_text = {st.session_state.extracted_text}"
-                )
-
         except DocumentExtractionError as e:
             logging.error(f"Error while processing document upload: {e}")
             st.session_state.doc_upload_error = True

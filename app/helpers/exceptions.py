@@ -4,3 +4,7 @@ class URLValidationError(Exception):
 
 class DocumentExtractionError(Exception):
     pass
+
+
+class DocumentChunkingError(Exception):
+    pass
