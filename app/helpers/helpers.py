@@ -10,6 +10,8 @@ from ui.render_powerpoint import render_powerpoint
 from ui.render_pdf import render_pdf
 from helpers import document_service
 import time
+from backend.ingestion.chunking import chunk_text
+from backend.embeddings.embedder import embed_chunks
 
 
 # ****** MOVE TO EXCEPTIONS
@@ -113,13 +115,11 @@ def process_upload():
         st.session_state.stored_file = uploaded_file
         st.session_state.stored_file_data = uploaded_file.read()
         try:
-            with st.spinner("Exatracting text from document.."):
-                time.sleep(1)
-                st.session_state.extracted_text = document_service.extract_text(
-                    st.session_state.stored_file
-                )
-            with st.spinner("Generating embeddings.."):
-                time.sleep(3)
+            st.session_state.extracted_text = document_service.extract_text(
+                st.session_state.stored_file
+            )
+            st.session_state.chunked_text = chunk_text(st.session_state.extracted_text)
+            st.session_state.embeddings = embed_chunks(st.session_state.chunked_text)
             # enable chat if extraction was sucesful
             if st.session_state.extracted_text:
                 enable_chat()
