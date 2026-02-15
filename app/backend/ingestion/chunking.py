@@ -9,7 +9,6 @@ def chunk_text(text: str, chunk_size: int = 800, chunk_overlap: int = 150):
         chunk_size=chunk_size, chunk_overlap=chunk_overlap
     )
     chunks = text_splitter.split_text(text)
-
     if len(chunks) == 0:
         raise DocumentChunkingError("Chunking process returned 0 rows.")
 
