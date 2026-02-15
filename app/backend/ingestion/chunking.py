@@ -1,5 +1,5 @@
 from langchain_text_splitters import RecursiveCharacterTextSplitter
-from app.helpers.exceptions import DocumentChunkingError
+from helpers.exceptions import DocumentChunkingError
 
 
 # SPLITS THE INPUT TEXT INTO OVERLAPING CHUNKS FOR RAG PROCESSING.

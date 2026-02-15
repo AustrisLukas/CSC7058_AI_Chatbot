@@ -1,6 +1,6 @@
 import pytest
 from backend.ingestion.chunking import chunk_text
-from app.helpers.exceptions import DocumentChunkingError
+from helpers.exceptions import DocumentChunkingError
 
 
 # TEST CASE TO VERITY RETURN TYPE IS CORRECT AND RETURN ARRAY LEN IS > 0 FOR A VALID INPUT
@@ -27,5 +27,5 @@ def test_chunk_text_throws_exc():
 
     with pytest.raises(DocumentChunkingError):
         with open("tests/fixtures/empty_text.txt") as file:
-            text = file.read()
+            text = file.read().strip()
             chunks = chunk_text(text)
