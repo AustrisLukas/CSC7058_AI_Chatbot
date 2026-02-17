@@ -46,6 +46,16 @@ def enable_chat():
     st.session_state.chat_enabled = True
 
 
+def clear_upload_error():
+    st.session_state.doc_upload_error = False
+    st.session_state.doc_upload_error_msg = ""
+
+
+def set_upload_error(error):
+    st.session_state.doc_upload_error = True
+    st.session_state.doc_upload_error_msg = error
+
+
 # ENABLES WEBMIND CHAT
 def enabable_webmind_chat():
     logger.info("Webmind enabled")
@@ -109,31 +119,39 @@ def send_message(role, message, mode):
 
 
 def process_upload():
-    st.session_state.extracted_text = ""
+    # st.session_state.extracted_text = ""
     uploaded_file = st.session_state.get("uploaded_file")
-    if uploaded_file:
-        st.session_state.stored_file = uploaded_file
-        st.session_state.stored_file_data = uploaded_file.read()
-        try:
-            st.session_state.extracted_text = document_service.extract_text(
-                st.session_state.stored_file
-            )
-            st.session_state.chunked_text = chunk_text(st.session_state.extracted_text)
-            st.session_state.embeddings = embed_chunks(st.session_state.chunked_text)
-            # enable chat if extraction was sucesful
-            if st.session_state.extracted_text:
-                enable_chat()
-                st.session_state.doc_upload_error = False
-                st.session_state.doc_upload_error_msg = ""
-        except DocumentExtractionError as e:
-            logging.error(f"Error while processing document upload: {e}")
-            st.session_state.doc_upload_error = True
-            st.session_state.doc_upload_error_msg = e
-            reset_chat("documind")
+    if not uploaded_file:
+        raise DocumentExtractionError("Uploaded file not found.")
+    st.session_state.stored_file = uploaded_file
+    st.session_state.stored_file_data = uploaded_file.read()
+    try:
+        extracted_text, chunked_text, chunk_embeddings, store = (
+            document_service.build_doc_pipeline(uploaded_file)
+        )
+        st.session_state.extracted_text = extracted_text
+        st.session_state.chunked_text = chunked_text
+        st.session_state.chunk_embeddings = chunk_embeddings
+        st.session_state.vector_store = store
 
-        except Exception as e:
-            print("Caught a generic error while extracting document")
-            print(e)
+        # print(extracted_text)
+        # print(chunked_text)
+        # print(chunk_embeddings)
+
+        if st.session_state.extracted_text:
+            enable_chat()
+            clear_upload_error()
+
+    except DocumentExtractionError as e:
+        logging.error(f"Error while processing document upload: {e}")
+        set_upload_error(e)
+        reset_chat("documind")
+
+    except Exception as e:
+        print("Error encoutered while extracting text from the document")
+        set_upload_error(e)
+        reset_chat("documind")
+        print(e)
 
 
 # CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
