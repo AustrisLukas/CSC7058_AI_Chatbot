@@ -1,4 +1,7 @@
 from helpers import data_utils
+from backend.ingestion.chunking import chunk_text
+from backend.embeddings.embedder import embed_chunks
+from backend.vector_store.faiss_store import FAISSStore
 
 
 def extract_text(file):
@@ -22,3 +25,15 @@ def extract_text(file):
         extracted_text = data_utils.extract_pptx(file)
 
     return extracted_text
+
+
+def build_doc_pipeline(file):
+
+    extracted_text = extract_text(file)
+    chunked_text = chunk_text(extracted_text)
+    chunk_embeddings = embed_chunks(chunked_text)
+    # Initialise FAISS store
+    store = FAISSStore(dimension=len(chunk_embeddings[0]))
+    store.add(chunk_embeddings, chunked_text)
+
+    return extracted_text, chunked_text, chunk_embeddings, store
