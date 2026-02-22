@@ -12,6 +12,7 @@ from helpers import document_service
 import time
 from backend.ingestion.chunking import chunk_text
 from backend.embeddings.embedder import embed_chunks
+from backend.pipeline.pipeline import run_rag_pipeline
 
 
 # ****** MOVE TO EXCEPTIONS
@@ -161,10 +162,13 @@ def process_upload(on_step=None):
 
 
 # CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
-def get_AI_response(user_input, mode):
+def get_AI_response(mode, user_input):
     if mode == "documind":
-        return openai_service.get_openai_response(
-            user_input, st.session_state.chat_history
+        return run_rag_pipeline(
+            query=user_input,
+            messages=st.session_state.chat_history,
+            store=st.session_state.vector_store,
+            k=5,
         )
     elif mode == "webmind":
         return openai_service.get_openai_response(

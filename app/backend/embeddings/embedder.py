@@ -11,5 +11,5 @@ def embed_chunks(chunks: list[str]) -> list[list[float]]:
 
 
 def embed_query(query: str) -> list[float]:
-    response = client.embeddings.create(model=embedding_model, input=query)
-    return response
+    response = client.embeddings.create(model=embedding_model, input=[query])
+    return response.data[0].embedding
