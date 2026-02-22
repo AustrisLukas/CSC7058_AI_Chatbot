@@ -6,7 +6,6 @@ st.set_page_config(
     page_icon="app/assets/images/favicon_v2.png",
     layout="wide",
 )
-
 st.header("⚙️  AI Behaviour Settings", divider="grey")
 
 col1, col2 = st.columns([5, 5])
@@ -27,7 +26,7 @@ with col1:
         st.write("---")
         ai_creatvity = st.radio(
             "AI Creativity Adjustment",
-            ["Low", "Medium", "High"],
+            ["Strict", "Balanced", "Creative"],
             captions=[
                 "Strictly grounded AI outputs.",
                 "Combination of both.",

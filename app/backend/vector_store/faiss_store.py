@@ -1,6 +1,9 @@
 import faiss
 import numpy as np
 from typing import List
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 # FAIS Vector store.
@@ -45,8 +48,10 @@ class FAISSStore:
 
         distances, indices = self.index.search(query_vector, k)
 
+        for rank, dist in enumerate(distances[0], start=1):
+            logger.info("Rank %d distance: %.6f", rank, float(dist))
+
         # Match indices (k) with texts
         for i in indices[0]:
             results.append(self.texts[i])
-            print(self.texts[i])
         return results
