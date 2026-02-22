@@ -42,23 +42,25 @@ def view_document():
 
 # ENABLES CHAT FOR USER INPUT
 def enable_chat():
-    logger.info("Documind enabled")
+    logger.info("documind chat interface enabled")
     st.session_state.chat_enabled = True
 
 
 def clear_upload_error():
+    logger.info("document upload error flag set to False")
     st.session_state.doc_upload_error = False
     st.session_state.doc_upload_error_msg = ""
 
 
 def set_upload_error(error):
+    logger.warning("document upload error flag set to True")
     st.session_state.doc_upload_error = True
     st.session_state.doc_upload_error_msg = error
 
 
 # ENABLES WEBMIND CHAT
 def enabable_webmind_chat():
-    logger.info("Webmind enabled")
+    logger.info("webmind chat interface enabled")
     st.session_state.webmind_enabled = True
 
 
@@ -90,10 +92,12 @@ def reset_chat(mode):
             del st.session_state["stored_file_data"]
             clear_chat("documind")
             st.session_state.chat_enabled = False
+            logger.info(f"Chat reset request completed for {mode}")
     elif mode == "webmind":
         st.session_state.validated_url = ""
         clear_chat("webmind")
         st.session_state.webmind_enabled = False
+        logger.info(f"Chat reset request completed for {mode}")
 
 
 # SANITISES AND APPENDS MESSAGE TO CHAT HISTORY, THEN DISPLAYS IN THE CHAT WINDOW
@@ -139,10 +143,6 @@ def process_upload(on_step=None):
         st.session_state.chunked_text = chunked_text
         st.session_state.chunk_embeddings = chunk_embeddings
         st.session_state.vector_store = store
-
-        # print(extracted_text)
-        # print(chunked_text)
-        # print(chunk_embeddings)
 
         if st.session_state.extracted_text:
             enable_chat()
@@ -190,11 +190,12 @@ def process_GO(on_step=None):
         step("Validating URL")
         time.sleep(2)
         if is_valid_url(st.session_state.get("input_url")):
+            logger.info("URL format validation passed")
             st.session_state.validated_url = st.session_state.get("input_url")
             st.session_state.webmind_invalid_URL_error = ""
             enabable_webmind_chat()
         else:
-            logger.error("URL format is not valid.")
+            logger.error("provided URL format is not valid.")
             raise URLValidationError("The provided URL is not a valid format.")
     except URLValidationError as e:
         st.session_state.webmind_invalid_URL_error = True
