@@ -27,11 +27,22 @@ def extract_text(file):
     return extracted_text
 
 
-def build_doc_pipeline(file):
+def build_doc_pipeline(file, on_step=None):
 
+    def step(msg):
+        if on_step:
+            on_step(msg)
+
+    step("Extracting text from document...")
     extracted_text = extract_text(file)
+
+    step("Chunking extracted text...")
     chunked_text = chunk_text(extracted_text)
+
+    step("Embedding text chunks...")
     chunk_embeddings = embed_chunks(chunked_text)
+
+    step("Initialising vector database...")
     # Initialise FAISS store
     store = FAISSStore(dimension=len(chunk_embeddings[0]))
     store.add(chunk_embeddings, chunked_text)

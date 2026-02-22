@@ -7,6 +7,23 @@ from helpers import helpers
 from services.openai_service import OpenAIServiceError
 
 
+def process_upload_with_status():
+    status_slot = st.empty()
+    with status_slot.container():
+        with st.status("Starting document upload", expanded=True) as status:
+
+            def on_step(msg: str):
+                st.write(msg)
+
+            try:
+                helpers.process_GO(on_step=on_step)
+            except Exception:
+                status.update(label="Upload Failed", state="error")
+                raise
+
+        status_slot.empty()  # HIDE STATUS ELEMENT FROM PAGE AFTER COMPLETION.
+
+
 # PAGE CONFIG
 st.set_page_config(
     page_title="DocuMind",
@@ -74,7 +91,7 @@ if "validated_url" not in st.session_state or st.session_state.webmind_enabled =
         st.text_input(
             label="input_url",
             key="input_url",
-            on_change=helpers.process_GO,
+            on_change=process_upload_with_status,
             label_visibility="collapsed",
             placeholder="https://",
         )
@@ -92,10 +109,9 @@ if "validated_url" not in st.session_state or st.session_state.webmind_enabled =
 # RENDERS CHAT-ENABLED INTERFACE
 else:
     st.header("🌐  WebMind", divider="blue")
-    st.markdown(
-        f":green-badge[:material/check: URL Accessed] "
-        f":blue-badge[{st.session_state.validated_url}]"
-    )
+    with st.status(label="Web Source Processed", expanded=True, state="complete"):
+        st.markdown(f":blue-badge[{st.session_state.validated_url}]")
+
     helpers.load_chat_history("webmind")
 
     if user_input:

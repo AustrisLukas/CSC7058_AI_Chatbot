@@ -118,16 +118,22 @@ def send_message(role, message, mode):
             st.markdown(cleaned_msg)
 
 
-def process_upload():
+def process_upload(on_step=None):
+    def step(msg):
+        if on_step:
+            on_step(msg)
+
     # st.session_state.extracted_text = ""
     uploaded_file = st.session_state.get("uploaded_file")
     if not uploaded_file:
         raise DocumentExtractionError("Uploaded file not found.")
     st.session_state.stored_file = uploaded_file
     st.session_state.stored_file_data = uploaded_file.read()
+
     try:
+
         extracted_text, chunked_text, chunk_embeddings, store = (
-            document_service.build_doc_pipeline(uploaded_file)
+            document_service.build_doc_pipeline(uploaded_file, on_step=on_step)
         )
         st.session_state.extracted_text = extracted_text
         st.session_state.chunked_text = chunked_text
@@ -174,8 +180,15 @@ def is_valid_url(url: str) -> bool:
     return has_scheme and has_domain
 
 
-def process_GO():
+def process_GO(on_step=None):
+
+    def step(msg):
+        if on_step:
+            on_step(msg)
+
     try:
+        step("Validating URL")
+        time.sleep(2)
         if is_valid_url(st.session_state.get("input_url")):
             st.session_state.validated_url = st.session_state.get("input_url")
             st.session_state.webmind_invalid_URL_error = ""
