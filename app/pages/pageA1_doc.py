@@ -7,6 +7,23 @@ from helpers import helpers
 from services.openai_service import OpenAIServiceError
 
 
+def process_upload_with_status():
+    status_slot = st.empty()
+    with status_slot.container():
+        with st.status("Starting document upload", expanded=True) as status:
+
+            def on_step(msg: str):
+                st.write(msg)
+
+            try:
+                helpers.process_upload(on_step=on_step)
+            except Exception:
+                status.update(label="Upload Failed", state="error")
+                raise
+
+        status_slot.empty()  # HIDE STATUS ELEMENT FROM PAGE AFTER COMPLETION.
+
+
 # PAGE CONFIG
 st.set_page_config(
     page_title="DocuMind",
@@ -76,7 +93,7 @@ if "stored_file_data" not in st.session_state:
             type=["pdf", "docx", "xlsx", "csv", "pptx"],
             accept_multiple_files=False,
             key="uploaded_file",
-            on_change=helpers.process_upload,
+            on_change=process_upload_with_status,
         )
         if st.session_state.doc_upload_error == True:
             st.error(
@@ -90,10 +107,8 @@ if "stored_file_data" not in st.session_state:
 # RENDERS CHAT-ENABLED INTERFACE
 else:
     st.header("📚 DocuMind", divider="red")
-    st.markdown(
-        f":green-badge[:material/check: Uploaded] "
-        f":blue-badge[{st.session_state.stored_file.name}]"
-    )
+    with st.status(label="Upload Complete", expanded=True, state="complete"):
+        st.markdown(f":blue-badge[{st.session_state.stored_file.name}]")
     helpers.load_chat_history("documind")
 
     if user_input:
