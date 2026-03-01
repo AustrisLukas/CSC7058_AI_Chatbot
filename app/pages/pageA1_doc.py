@@ -30,6 +30,8 @@ st.set_page_config(
     page_icon="app/assets/images/favicon_v2.png",
     layout="wide",
 )
+
+
 # FLAG FOR DOCUMENT UPLOAD ERROR
 if "doc_upload_error" not in st.session_state:
     st.session_state.doc_upload_error = False
@@ -71,8 +73,18 @@ with st.sidebar:
             on_click=helpers.clear_chat,
             args=("documind",),
         )
-        st.header("References", divider="red")
-        st.write("references here")
+        # DOCUMENT RELEVANCE SCORE
+        retrieval_score_slot = st.empty()
+        if "retrieval_score" in st.session_state:
+            retrieval_score_slot.progress(
+                int(round(st.session_state.retrieval_score)), "Document Relevance Score"
+            )
+        # AI SELF-EVALUATION
+        self_evaluation_slot = st.empty()
+        if "self_evaluation_score" in st.session_state:
+            self_evaluation_slot.progress(
+                st.session_state.self_evaluation_score, "Answer Confidence (AI-Rated)"
+            )
         st.header("Active Document", divider="violet")
         st.write(st.session_state.stored_file.name)
 
@@ -115,7 +127,19 @@ else:
         helpers.send_message("user", user_input, "documind")
         with st.spinner("thinking..", show_time=True):
             try:
-                ai_response = helpers.get_AI_response("documind", user_input)
+                (
+                    ai_response,
+                    st.session_state.retrieval_score,
+                    st.session_state.self_evaluation_score,
+                ) = helpers.get_AI_response("documind", user_input)
+                retrieval_score_slot.progress(
+                    int(round(st.session_state.retrieval_score)),
+                    "Document Relevance Score",
+                )
+                self_evaluation_slot.progress(
+                    st.session_state.self_evaluation_score,
+                    "Answer Confidence (AI-Rated)",
+                )
                 helpers.send_message("assistant", ai_response, "documind")
             except OpenAIServiceError as e:
                 st.error(str(e))
