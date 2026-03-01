@@ -31,7 +31,8 @@ def run_rag_pipeline(query: str, messages: list[str], store, k: int = 5) -> str:
     self_evaluation = openai_service.get_openai_response(
         self_evaluation_query, messages
     )
-    self_evaluation = json.loads(self_evaluation)
+    if self_evaluation != None:
+        self_evaluation = json.loads(self_evaluation)
     print(self_evaluation["self_score"])
     print(self_evaluation["reason"])
     print(self_evaluation["references"])
@@ -103,7 +104,7 @@ def build_self_evaluate_prompt(relevant_chunks: list[str], response):
     "reason": "<one very short sentence>"
     "references": [
         "<short supporting quote or chunk snippet 1>",
-        "<short supporting quote or chunk snipped 2>"
+        "<short supporting quote or chunk snipped 2>",
         ]
     }}
 
