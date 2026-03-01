@@ -91,6 +91,8 @@ def reset_chat(mode):
     if mode == "documind":
         if "stored_file_data" in st.session_state:
             del st.session_state["stored_file_data"]
+            del st.session_state["retrieval_score"]
+            st.session_state["self_evaluation_score"]
             clear_chat("documind")
             st.session_state.chat_enabled = False
             logger.info(f"Chat reset request completed for {mode}")
@@ -164,12 +166,13 @@ def process_upload(on_step=None):
 # CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
 def get_AI_response(mode, user_input):
     if mode == "documind":
-        return run_rag_pipeline(
+        response, retrieval_score, self_evaluation_score = run_rag_pipeline(
             query=user_input,
             messages=st.session_state.chat_history,
             store=st.session_state.vector_store,
             k=5,
         )
+        return response, retrieval_score, self_evaluation_score
     elif mode == "webmind":
         return openai_service.get_openai_response(
             user_input, st.session_state.chat_history_webmind
