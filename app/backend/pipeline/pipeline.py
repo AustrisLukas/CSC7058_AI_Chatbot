@@ -3,6 +3,8 @@ from services import openai_service
 import logging
 from backend.exceptions import RetrievalError
 import json
+from helpers.data_utils import parse_model_json
+from helpers.data_utils import load_json
 
 
 logger = logging.getLogger(__name__)
@@ -24,20 +26,24 @@ def run_rag_pipeline(query: str, messages: list[str], store, k: int = 5) -> str:
     logging.info(f"Begin rag_pipeline for query -> {query}")
 
     relevant_chunks, retrieval_score = retrieve_relevant_chunks(query, store, k)
+    if retrieval_score < 15:
+        return guardrail_faillback()
     prompt = build_prompt(relevant_chunks, query)
     ai_response = openai_service.get_openai_response(prompt, messages)
 
-    self_evaluation_query = build_self_evaluate_prompt(relevant_chunks, ai_response)
-    self_evaluation = openai_service.get_openai_response(
-        self_evaluation_query, messages
-    )
-    if self_evaluation != None:
-        self_evaluation = json.loads(self_evaluation)
-    print(self_evaluation["self_score"])
-    print(self_evaluation["reason"])
-    print(self_evaluation["references"])
+    # self_evaluation_query = build_self_evaluate_prompt(relevant_chunks, ai_response)
+    # self_evaluation = openai_service.get_openai_response(
+    #     self_evaluation_query, messages
+    # )
+    # if self_evaluation != None:
 
-    return ai_response, retrieval_score, self_evaluation["self_score"]
+    #     self_evaluation = parse_model_json(self_evaluation)
+
+    logger.info(f"Query response: {ai_response}")
+    # logger.info(f"Self evaluation: {self_evaluation}")
+
+    ai_response = load_json(ai_response)
+    return ai_response, retrieval_score
 
 
 def retrieve_relevant_chunks(query: str, store, k: int = 5) -> tuple[list[str], float]:
@@ -60,12 +66,40 @@ def build_prompt(relevant_chunks: list[str], query):
     context = "\n\n".join(prompt_parts)
 
     rag_query = f"""
-    You are answering based only on the provided context.
-    If the answer is not in the context, say you don't know.
+    You are a retrieval-based assistant.
+
+    You MUST answer using ONLY the provided context.
+    Do NOT use prior knowledge.
+    Do NOT infer beyond what is explicitly stated.
+
+    If the answer cannot be found explicitly in the context:
+    - State clearly that the information is not available in the provided context.
+    - Set self_score to 0.
+    - Return an EMPTY references array.
+
+    If the answer IS supported by the context:
+    - Provide a concise answer.
+    - Extract 1 to 3 short verbatim supporting snippets from the context.
+    - References MUST be exact substrings copied from the context.
+    - Do NOT paraphrase references and include all relevant references.
 
     Context:{context}
 
     Question:{query}
+    
+    Return ONLY valid JSON in this exact schema:
+
+    {{
+    "answer": "<concise answer>",
+    "self_score": <integer 0-100>,
+    "reason": "<one very short sentence explaining score>",
+    "references": [
+        "<exact supporting quote 1>",
+        "<exact supporting quote 2>",
+        "...",
+        "<exact supporting quote N>",
+    ]
+    }}
     """.strip()
 
     return rag_query
@@ -79,7 +113,7 @@ def build_self_evaluate_prompt(relevant_chunks: list[str], response):
 
     context = "\n\n".join(prompt_parts)
 
-    rag_query = f"""
+    rag_query_with_ref = f"""
     You are an evaluator. Score an answer only by support from the provided context.
 
     Task:
@@ -94,9 +128,9 @@ def build_self_evaluate_prompt(relevant_chunks: list[str], response):
     Rules:
     - Do not use external knowledge.
     - If context lacks evidence for key claims, lower score.
-    - If answer correctly says information is missing, score based on that correctness.
+    - If answer correctly says information in context is missing, score high based on that correctness.
     - Return JSON only. No markdown, no extra text.
-    If the answer is not in the context, say you don't know.
+
 
     Return schema:
     {{
@@ -113,4 +147,19 @@ def build_self_evaluate_prompt(relevant_chunks: list[str], response):
     AI Response:{response}
     """.strip()
 
-    return rag_query
+    return rag_query_with_ref
+
+
+def guardrail_faillback():
+
+    logger.warning(
+        "Low context guardrail triggered. No API call made and shortcircuit answer returned."
+    )
+
+    # Return default answer, and 0 for retrieval score
+    return {
+        "answer": "The provided text does not contain infroamtion about the question",
+        "self_score": 0,
+        "reason": " ",
+        "references": [],
+    }, 0

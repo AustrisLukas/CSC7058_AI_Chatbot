@@ -7,7 +7,7 @@ import pandas as pd
 import logging
 from .exceptions import DocumentExtractionError
 from pptx import Presentation
-
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -144,3 +144,33 @@ def extract_pptx(file):
         return text
     except Exception as e:
         raise DocumentExtractionError(f"Document Processing Error: {e}") from e
+
+
+def parse_model_json(text: str) -> dict:
+    s = text.strip()
+
+    # remove ```json ... ``` or ``` ... ```
+    if s.startswith("```"):
+        lines = s.splitlines()
+        if lines and lines[0].startswith("```"):
+            lines = lines[1:]
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+        s = "\n".join(lines).strip()
+
+    return json.loads(s)
+
+
+def load_json(raw_json):
+
+    try:
+        data = json.loads(raw_json)
+        return data
+    except json.JSONDecodeError:
+        data = {
+            "answer": "Model returned invalid JSON.",
+            "self_score": 0,
+            "reason": "Parsing failure.",
+            "references": [],
+        }
+        return data

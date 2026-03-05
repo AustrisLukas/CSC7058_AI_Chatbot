@@ -72,10 +72,26 @@ def load_chat_history(mode):
         for message in st.session_state.chat_history:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
+                refs = message.get("references")
+
+                if message["role"] == "assistant" and refs:
+                    with st.popover(f"View References"):
+                        st.markdown(format_ref(refs))
+                        # st.write(refs)
     elif mode == "webmind":
         for message in st.session_state.chat_history_webmind:
             with st.chat_message(message["role"]):
                 st.markdown(message["content"])
+
+
+def format_ref(refs):
+    if not refs:
+        return ""
+
+    formatted = "\n\n".join(
+        f"> **Reference {i}**: {ref}" for i, ref in enumerate(refs, start=1)
+    )
+    return formatted
 
 
 # DELETES CHAT HISTORY FROM st.session_state.chat_history
@@ -104,25 +120,56 @@ def reset_chat(mode):
 
 
 # SANITISES AND APPENDS MESSAGE TO CHAT HISTORY, THEN DISPLAYS IN THE CHAT WINDOW
-def send_message(role, message, mode):
+def send_message(role, message, mode, references=None):
+
     # CLEAN MESSAGE
     cleaned_msg = message.strip()
+    mode_pointer = get_mode(mode)
 
+    mode_pointer.append(
+        {
+            "role": role,
+            "content": cleaned_msg,
+            "references": references if role == "assistant" else None,
+        }
+    )
+    with st.chat_message(role):
+        body_slot = st.empty()
+        refs_slot = st.empty()
+
+        body_slot.markdown(cleaned_msg)
+        if role == "assistant" and references:
+            with refs_slot.popover("View References"):
+                st.markdown(format_ref(references))
+
+        # if role == "assistant" and references:
+        #     st.markdown("msg1")
+        #     st.markdown("msg2")
+        # else:
+        #     st.markdown(cleaned_msg)
+    # if mode == "documind":
+    #     # APPEND THE MESSAGE TO st.session_state.chat_history
+    #     st.session_state.chat_history.append({"role": role, "content": cleaned_msg})
+    #     # DISPLAY THE MESSAGE
+    #     with st.chat_message(role):
+    #         st.markdown(cleaned_msg)
+
+    # elif mode == "webmind":
+    #     # APPEND THE MESSAGE TO st.session_state.chat_history
+    #     st.session_state.chat_history_webmind.append(
+    #         {"role": role, "content": cleaned_msg}
+    #     )
+    #     # DISPLAY THE MESSAGE
+    #     with st.chat_message(role):
+    #         st.markdown(cleaned_msg)
+
+
+def get_mode(mode):
     if mode == "documind":
-        # APPEND THE MESSAGE TO st.session_state.chat_history
-        st.session_state.chat_history.append({"role": role, "content": cleaned_msg})
-        # DISPLAY THE MESSAGE
-        with st.chat_message(role):
-            st.markdown(cleaned_msg)
-
-    elif mode == "webmind":
-        # APPEND THE MESSAGE TO st.session_state.chat_history
-        st.session_state.chat_history_webmind.append(
-            {"role": role, "content": cleaned_msg}
-        )
-        # DISPLAY THE MESSAGE
-        with st.chat_message(role):
-            st.markdown(cleaned_msg)
+        return st.session_state.chat_history
+    if mode == "webmind":
+        return st.session_state.chat_history_webmind
+    raise ValueError(f"Unsupported mode: {mode}")
 
 
 def process_upload(on_step=None):
@@ -166,13 +213,13 @@ def process_upload(on_step=None):
 # CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
 def get_AI_response(mode, user_input):
     if mode == "documind":
-        response, retrieval_score, self_evaluation_score = run_rag_pipeline(
+        response, retrieval_score = run_rag_pipeline(
             query=user_input,
             messages=st.session_state.chat_history,
             store=st.session_state.vector_store,
             k=5,
         )
-        return response, retrieval_score, self_evaluation_score
+        return response, retrieval_score
     elif mode == "webmind":
         return openai_service.get_openai_response(
             user_input, st.session_state.chat_history_webmind
