@@ -118,7 +118,7 @@ else:
         helpers.send_message("user", user_input, "webmind")
         with st.spinner("thinking..", show_time=True):
             try:
-                ai_response = helpers.get_AI_response(user_input, "webmind")
+                ai_response = helpers.get_AI_response("webmind", user_input)
                 helpers.send_message("assistant", ai_response, "webmind")
             except OpenAIServiceError as e:
                 st.error(str(e))

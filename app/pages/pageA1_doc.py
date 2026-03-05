@@ -7,6 +7,9 @@ from helpers import helpers
 from services.openai_service import OpenAIServiceError
 
 
+st.session_state.setdefault("show_ref", False)
+
+
 def process_upload_with_status():
     status_slot = st.empty()
     with status_slot.container():
@@ -20,7 +23,6 @@ def process_upload_with_status():
             except Exception:
                 status.update(label="Upload Failed", state="error")
                 raise
-
         status_slot.empty()  # HIDE STATUS ELEMENT FROM PAGE AFTER COMPLETION.
 
 
@@ -127,20 +129,25 @@ else:
         helpers.send_message("user", user_input, "documind")
         with st.spinner("thinking..", show_time=True):
             try:
-                (
-                    ai_response,
-                    st.session_state.retrieval_score,
-                    st.session_state.self_evaluation_score,
-                ) = helpers.get_AI_response("documind", user_input)
+                (ai_response, st.session_state.retrieval_score) = (
+                    helpers.get_AI_response("documind", user_input)
+                )
+
                 retrieval_score_slot.progress(
                     int(round(st.session_state.retrieval_score)),
                     "Document Relevance Score",
                 )
                 self_evaluation_slot.progress(
-                    st.session_state.self_evaluation_score,
+                    ai_response.get("self_score", 0),
                     "Answer Confidence (AI-Rated)",
                 )
-                helpers.send_message("assistant", ai_response, "documind")
+
+                helpers.send_message(
+                    "assistant",
+                    ai_response.get("answer", "<no answer>"),
+                    "documind",
+                    ai_response.get("references", "<no refs available>"),
+                )
             except OpenAIServiceError as e:
                 st.error(str(e))
             except Exception as e:

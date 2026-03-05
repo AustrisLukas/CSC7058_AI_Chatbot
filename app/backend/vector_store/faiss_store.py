@@ -46,8 +46,11 @@ class FAISSStore:
             )
         distances, indices = self.index.search(query_vector, k)
 
+        distancesList = []
         for rank, dist in enumerate(distances[0], start=1):
-            logger.info("Rank %d distance: %.6f", rank, float(dist))
+            # logger.info("Rank %d distance: %.6f", rank, float(dist))
+            distancesList.append(round(float(dist), 6))
+        logger.info(f"Chunk distances: {distancesList}")
 
         self.set_last_retrieval_score(distances[0])
 
@@ -75,7 +78,7 @@ class FAISSStore:
         score = 100 * (0.85 * closeness + 0.15 * separation)
 
         self.last_retrieval_score = round(score, 1)
-        logger.info(f"Retrieval socre: {self.last_retrieval_score}")
+        logger.info(f"Retrieval socre: {round(self.last_retrieval_score)}")
 
     def get_last_retrieval_score(self) -> float:
         return self.last_retrieval_score

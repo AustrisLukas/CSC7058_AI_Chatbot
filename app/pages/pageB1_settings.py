@@ -39,11 +39,11 @@ with col1:
         ),
     )
 
-    show_ref = st.checkbox(
-        "Show Answer Confidence",
+    st.session_state.show_ref = st.checkbox(
+        "Display References",
         help=(
             "Check this option to display the AI’s confidence or certainty in its answers. "
             "Higher confidence indicates the AI is more certain about the response."
         ),
-        value=True,
+        value=st.session_state.show_ref,
     )
