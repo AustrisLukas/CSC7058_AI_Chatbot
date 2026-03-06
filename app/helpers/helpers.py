@@ -74,7 +74,11 @@ def load_chat_history(mode):
                 st.markdown(message["content"])
                 refs = message.get("references")
 
-                if message["role"] == "assistant" and refs:
+                if (
+                    message["role"] == "assistant"
+                    and refs
+                    and st.session_state.show_refs == True
+                ):
                     with st.popover(f"View References"):
                         st.markdown(format_ref(refs))
                         # st.write(refs)
@@ -138,30 +142,9 @@ def send_message(role, message, mode, references=None):
         refs_slot = st.empty()
 
         body_slot.markdown(cleaned_msg)
-        if role == "assistant" and references:
+        if role == "assistant" and references and st.session_state.show_refs == True:
             with refs_slot.popover("View References"):
                 st.markdown(format_ref(references))
-
-        # if role == "assistant" and references:
-        #     st.markdown("msg1")
-        #     st.markdown("msg2")
-        # else:
-        #     st.markdown(cleaned_msg)
-    # if mode == "documind":
-    #     # APPEND THE MESSAGE TO st.session_state.chat_history
-    #     st.session_state.chat_history.append({"role": role, "content": cleaned_msg})
-    #     # DISPLAY THE MESSAGE
-    #     with st.chat_message(role):
-    #         st.markdown(cleaned_msg)
-
-    # elif mode == "webmind":
-    #     # APPEND THE MESSAGE TO st.session_state.chat_history
-    #     st.session_state.chat_history_webmind.append(
-    #         {"role": role, "content": cleaned_msg}
-    #     )
-    #     # DISPLAY THE MESSAGE
-    #     with st.chat_message(role):
-    #         st.markdown(cleaned_msg)
 
 
 def get_mode(mode):
