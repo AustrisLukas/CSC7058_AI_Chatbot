@@ -7,7 +7,7 @@ from helpers import helpers
 from services.openai_service import OpenAIServiceError
 
 
-st.session_state.setdefault("show_ref", False)
+st.session_state.setdefault("show_refs", True)
 
 
 def process_upload_with_status():
@@ -137,8 +137,11 @@ else:
                     int(round(st.session_state.retrieval_score)),
                     "Document Relevance Score",
                 )
+                st.session_state.self_evaluation_score = ai_response.get(
+                    "self_score", 0
+                )
                 self_evaluation_slot.progress(
-                    ai_response.get("self_score", 0),
+                    st.session_state.self_evaluation_score,
                     "Answer Confidence (AI-Rated)",
                 )
 
