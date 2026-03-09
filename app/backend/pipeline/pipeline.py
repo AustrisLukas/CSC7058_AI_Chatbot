@@ -35,7 +35,6 @@ def run_rag_pipeline(query: str, messages: list[str], store, k: int = 5) -> str:
     ai_response = openai_service.get_openai_response(prompt, messages)
 
     logger.info(f"Query response: {ai_response}")
-    # logger.info(f"Self evaluation: {self_evaluation}")
 
     ai_response = load_json(ai_response)
     return ai_response, retrieval_score
@@ -153,7 +152,7 @@ def guardrail_faillback():
 
     # Return default answer, and 0 for retrieval score
     return {
-        "answer": "The provided text does not contain infroamtion about the question",
+        "answer": "The provided text does not contain information about the question",
         "self_score": 0,
         "reason": " ",
         "references": [],

@@ -13,6 +13,7 @@ import time
 from backend.ingestion.chunking import chunk_text
 from backend.embeddings.embedder import embed_chunks
 from backend.pipeline.pipeline import run_rag_pipeline
+import requests
 
 
 # ****** MOVE TO EXCEPTIONS
@@ -68,24 +69,21 @@ def enabable_webmind_chat():
 # POPULATES CHAT ELEMENT WITH MESSAGES FROM st.session_state.chat_history
 def load_chat_history(mode):
 
-    if mode == "documind":
-        for message in st.session_state.chat_history:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-                refs = message.get("references")
+    mode_pointer = get_mode(mode)
 
-                if (
-                    message["role"] == "assistant"
-                    and refs
-                    and st.session_state.show_refs == True
-                ):
-                    with st.popover(f"View References"):
-                        st.markdown(format_ref(refs))
-                        # st.write(refs)
-    elif mode == "webmind":
-        for message in st.session_state.chat_history_webmind:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
+    for message in mode_pointer:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+            refs = message.get("references")
+
+            if (
+                message["role"] == "assistant"
+                and refs
+                and st.session_state.show_refs == True
+            ):
+                with st.popover(f"View References"):
+                    st.markdown(format_ref(refs))
+                    # st.write(refs)
 
 
 def format_ref(refs):
@@ -170,16 +168,15 @@ def process_upload(on_step=None):
     try:
 
         extracted_text, chunked_text, chunk_embeddings, store = (
-            document_service.build_doc_pipeline(uploaded_file, on_step=on_step)
+            document_service.build_doc_pipeline(file=uploaded_file, on_step=on_step)
         )
         st.session_state.extracted_text = extracted_text
         st.session_state.chunked_text = chunked_text
         st.session_state.chunk_embeddings = chunk_embeddings
         st.session_state.vector_store = store
 
-        if st.session_state.extracted_text:
-            enable_chat()
-            clear_upload_error()
+        enable_chat()
+        clear_upload_error()
 
     except DocumentExtractionError as e:
         logging.error(f"Error while processing document upload: {e}")
@@ -204,6 +201,13 @@ def get_AI_response(mode, user_input):
         )
         return response, retrieval_score
     elif mode == "webmind":
+        response, retrieval_score = run_rag_pipeline(
+            query=user_input,
+            messages=st.session_state.chat_history_webmind,
+            store=st.session_state.web_vector_store,
+            k=5,
+        )
+        return response, retrieval_score
         return openai_service.get_openai_response(
             user_input, st.session_state.chat_history_webmind
         )
@@ -214,7 +218,30 @@ def is_valid_url(url: str) -> bool:
     parsed = urlparse(url)
     has_scheme = parsed.scheme in ("http", "https")
     has_domain = parsed.netloc != ""
-    return has_scheme and has_domain
+    if has_scheme and has_domain:
+        logger.info("URL format check PASS")
+        return True
+    else:
+        logger.warning("URL format check FAIL")
+        raise URLValidationError("The provided URL is not a valid format.")
+
+
+# CHECKS IF URL IS ACCESSIBLE
+def is_accessible_URL(url: str) -> bool:
+
+    try:
+        response = requests.head(url, allow_redirects=True, timeout=5)
+        if response.status_code == 405:
+            response = requests.get(url, stream=True, timeout=5)
+
+        if response.status_code == 200:
+            logger.info("URL .head or .get request PASS")
+            return True
+        else:
+            logger.warning("Provided URL is not responding to .head or .get request")
+            raise URLValidationError("The provided URL is not responding")
+    except requests.RequestException:
+        raise URLValidationError("An error occured while checking URL accessibility")
 
 
 def process_GO(on_step=None):
@@ -226,15 +253,31 @@ def process_GO(on_step=None):
     try:
         step("Validating URL")
         time.sleep(2)
-        if is_valid_url(st.session_state.get("input_url")):
-            logger.info("URL format validation passed")
-            st.session_state.validated_url = st.session_state.get("input_url")
-            st.session_state.webmind_invalid_URL_error = ""
-            enabable_webmind_chat()
-        else:
-            logger.error("provided URL format is not valid.")
-            raise URLValidationError("The provided URL is not a valid format.")
+        is_valid_url(st.session_state.get("input_url"))
+        is_accessible_URL(st.session_state.get("input_url"))
+        st.session_state.validated_url = st.session_state.get("input_url")
+        st.session_state.webmind_invalid_URL_error = ""
+
+        extracted_text, chunked_text, chunk_embeddings, store = (
+            document_service.build_doc_pipeline(
+                url=st.session_state.validated_url, on_step=on_step
+            )
+        )
+
+        st.session_state.web_extracted_text = extracted_text
+        st.session_state.web_chunked_text = chunked_text
+        st.session_state.web_chunk_embeddings = chunk_embeddings
+        st.session_state.web_vector_store = store
+
+        enabable_webmind_chat()
+
     except URLValidationError as e:
+        st.session_state.webmind_invalid_URL_error = True
+        st.session_state.webmind_invalid_URL_error_msg = e
+    except DocumentExtractionError as e:
+        st.session_state.webmind_invalid_URL_error = True
+        st.session_state.webmind_invalid_URL_error_msg = e
+    except Exception as e:
         st.session_state.webmind_invalid_URL_error = True
         st.session_state.webmind_invalid_URL_error_msg = e
 

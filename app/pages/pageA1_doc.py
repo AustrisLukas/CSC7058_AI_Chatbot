@@ -137,8 +137,11 @@ else:
                     int(round(st.session_state.retrieval_score)),
                     "Document Relevance Score",
                 )
+                st.session_state.self_evaluation_score = ai_response.get(
+                    "self_score", 0
+                )
                 self_evaluation_slot.progress(
-                    ai_response.get("self_score", 0),
+                    st.session_state.self_evaluation_score,
                     "Answer Confidence (AI-Rated)",
                 )
 

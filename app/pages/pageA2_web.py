@@ -7,6 +7,9 @@ from helpers import helpers
 from services.openai_service import OpenAIServiceError
 
 
+st.session_state.setdefault("show_refs", True)
+
+
 def process_upload_with_status():
     status_slot = st.empty()
     with status_slot.container():
@@ -118,8 +121,15 @@ else:
         helpers.send_message("user", user_input, "webmind")
         with st.spinner("thinking..", show_time=True):
             try:
-                ai_response = helpers.get_AI_response("webmind", user_input)
-                helpers.send_message("assistant", ai_response, "webmind")
+                ai_response, retrieval_score = helpers.get_AI_response(
+                    "webmind", user_input
+                )
+                helpers.send_message(
+                    "assistant",
+                    ai_response.get("answer", "<no answer>"),
+                    "webmind",
+                    ai_response.get("references", "<no references>"),
+                )
             except OpenAIServiceError as e:
                 st.error(str(e))
             except Exception as e:
