@@ -1,6 +1,9 @@
 import streamlit as st
 from openai import OpenAI
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class OpenAIServiceError(Exception):
@@ -19,6 +22,10 @@ def get_openai_response(prompt, chat_history):
         )
         if not response.choices:
             raise OpenAIServiceError("Something went wrong.. AI response is empty.")
+        logger.info(f"Prompt tokens: {response.usage.prompt_tokens}")
+        logger.info(f"Completion tokens: {response.usage.completion_tokens}")
+        logger.info(f"Total tokens: {response.usage.total_tokens}")
+
         return response.choices[0].message.content
     except Exception as e:
         raise OpenAIServiceError(

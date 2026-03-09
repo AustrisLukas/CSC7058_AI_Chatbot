@@ -108,13 +108,14 @@ def clear_chat(mode):
 def reset_chat(mode):
     if mode == "documind":
         if "stored_file_data" in st.session_state:
-            del st.session_state["stored_file_data"]
-            del st.session_state["retrieval_score"]
-            st.session_state["self_evaluation_score"]
+            for key in ["stored_file_data", "retrieval_score", "self_evaluation_score"]:
+                if key in st.session_state:
+                    del st.session_state[key]
             clear_chat("documind")
             st.session_state.chat_enabled = False
             logger.info(f"Chat reset request completed for {mode}")
     elif mode == "webmind":
+        ### NEEDS DEFINED FULLY
         st.session_state.validated_url = ""
         clear_chat("webmind")
         st.session_state.webmind_enabled = False
@@ -179,15 +180,14 @@ def process_upload(on_step=None):
         clear_upload_error()
 
     except DocumentExtractionError as e:
-        logging.error(f"Error while processing document upload: {e}")
+        logging.error(f"DocumentExtractionError while processing text extraction: {e}")
         set_upload_error(e)
         reset_chat("documind")
 
     except Exception as e:
-        print("Error encoutered while extracting text from the document")
+        logger.error(f"Exception encoutered while processing document upload: {e}")
         set_upload_error(e)
         reset_chat("documind")
-        print(e)
 
 
 # CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
