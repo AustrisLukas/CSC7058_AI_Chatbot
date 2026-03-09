@@ -3,7 +3,7 @@ from backend.ingestion.chunking import chunk_text
 from backend.embeddings.embedder import embed_chunks
 from backend.vector_store.faiss_store import FAISSStore
 import logging
-
+from helpers.exceptions import DocumentExtractionError
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +16,14 @@ def extract_text(file=None, url=None):
 
     # PATH FOR EXTRACTING TEXT FROM URL
     if url:
-        logger.info("Text extraction detected URL")
+        logger.info("Text extraction from URL source initiated.")
         return data_utils.extract_from_url(url)
 
     # PATH FOR EXTRACTING TEXT FROM FILE
     if file:
         extracted_text = ""
         file_type = data_utils.detect_file_type(file)
-        logger.info(f"Text extraction detected file format -> {file_type}")
+        logger.info(f"Text extraction from '{file_type}' source initiated.")
 
         if file_type == "pdf":
             extracted_text = data_utils.extract_pdf(file)
@@ -37,6 +37,8 @@ def extract_text(file=None, url=None):
             print("extract pptx")
             extracted_text = data_utils.extract_pptx(file)
 
+        if len(extracted_text.strip()) < 50:
+            raise DocumentExtractionError("Document contains insufficient text.")
         return extracted_text
 
 
@@ -48,15 +50,12 @@ def build_doc_pipeline(file=None, url=None, on_step=None):
 
     step("Extracting text from document...")
     extracted_text = extract_text(file=file, url=url)
-    logger.info("text succesfully extracted from document")
 
     step("Chunking extracted text...")
     chunked_text = chunk_text(extracted_text)
-    logger.info("text succesfully chunked")
 
     step("Embedding text chunks...")
     chunk_embeddings = embed_chunks(chunked_text)
-    logger.info("text chunks succesfully embedded")
 
     step("Initialising vector database...")
     # Initialise FAISS store

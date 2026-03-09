@@ -20,6 +20,8 @@ class FAISSStore:
 
     # Add  Embeddings and their corresponding text chunks
     def add(self, embeddings: List[List[float]], texts: List[str]) -> None:
+        print(len(embeddings))
+        print(len(texts))
         if len(embeddings) != len(texts):
             raise ValueError("Embeddings and texts must be have lenght")
 
