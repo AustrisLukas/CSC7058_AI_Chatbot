@@ -8,6 +8,10 @@ import logging
 from .exceptions import DocumentExtractionError
 from pptx import Presentation
 import json
+import requests
+import trafilatura
+from trafilatura.metadata import extract_metadata
+
 
 logger = logging.getLogger(__name__)
 
@@ -144,6 +148,59 @@ def extract_pptx(file):
         return text
     except Exception as e:
         raise DocumentExtractionError(f"Document Processing Error: {e}") from e
+
+
+def extract_from_url(url: str):
+    try:
+        response = requests.get(url)
+        metadata = extract_metadata(response.text)
+        text = trafilatura.extract(
+            response.text,
+            include_links=True,
+            include_images=True,
+            include_tables=True,
+            favor_precision=False,
+            favor_recall=True,
+            include_comments=False,
+            deduplicate=False,
+            output_format="markdown",
+        )
+
+        extr_document = f"""
+        Title: {metadata.title}
+        Website: {metadata.sitename}
+        URL: {metadata.url}
+
+        {clean_extracted_text(text)}
+        """
+
+        return extr_document
+    except Exception as e:
+        logger.error(f"Error while extracting text from provided URL: {e}")
+        raise DocumentExtractionError(
+            f"An error has occurred while extracting text from URL: {e}"
+        ) from e
+
+
+def clean_extracted_text(text):
+
+    if not text:
+        return ""
+
+    # Normalise line endings
+    text = text.replace("\r\n", "\n")
+    # Remove separation characters
+    text = text.replace("|", " ")
+    # Remove bullet point characters
+    text = re.sub(r"[•▪◦●■*]", " ", text)
+    # Normalise multiple spaces
+    text = re.sub(r"[ \t]+", " ", text)
+    # Normalise excessive newlines (max two)
+    text = re.sub(r"\n\s*\n\s*\n+", "\n\n", text)
+    # Remove leading/trailing whitespace
+    text = text.strip()
+
+    return text
 
 
 def parse_model_json(text: str) -> dict:
