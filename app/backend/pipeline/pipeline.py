@@ -40,13 +40,15 @@ def run_rag_pipeline(query: str, messages: list[str], store, k: int = 5) -> str:
     return ai_response, retrieval_score
 
 
-def retrieve_relevant_chunks(query: str, store, k: int = 5) -> tuple[list[str], float]:
-    if not query:
+def retrieve_relevant_chunks(
+    user_question: str, store, k: int = 5
+) -> tuple[list[str], float]:
+    if not user_question:
         raise RetrievalError("Query cannot be empty.")
     if store is None:
         raise RetrievalError("Vector store is not initialised.")
 
-    query_embedding = embed_query(query.strip())
+    query_embedding = embed_query(user_question.strip())
 
     return store.search(query_embedding, k=k), store.get_last_retrieval_score()
 
@@ -157,3 +159,26 @@ def guardrail_faillback():
         "reason": " ",
         "references": [],
     }, 0
+
+
+# FUNCTION TO TEST IF USER QUERY IS REQUESTING A SUMMARY
+def is_summary_request(user_question):
+    summary_keywords = [
+        "summary",
+        "summarise",
+        "summarize",
+        "overview",
+        "brief",
+        "outline",
+        "key points",
+        "main points",
+        "highlights",
+        "takeaways",
+        "main idea",
+        "what is this about",
+    ]
+
+    for keyword in summary_keywords:
+        if keyword in user_question:
+            return True
+    return False
