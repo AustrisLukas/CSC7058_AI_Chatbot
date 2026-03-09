@@ -20,14 +20,17 @@ RESPONSE_STYLE = {
     "detailed": "Provide in-depth explanations with relevant context, assumptions, and edge cases. Show reasoning and tradeoffs clearly. Use structured formatting when helpful.",
 }
 
+RETRIEVAL_TOLEANCE = 15
+
 
 def run_rag_pipeline(query: str, messages: list[str], store, k: int = 5) -> str:
 
     logging.info(f"Begin rag_pipeline for query -> {query}")
 
     relevant_chunks, retrieval_score = retrieve_relevant_chunks(query, store, k)
-    if retrieval_score < 15:
+    if retrieval_score < RETRIEVAL_TOLEANCE:
         return guardrail_faillback()
+
     prompt = build_prompt(relevant_chunks, query)
     ai_response = openai_service.get_openai_response(prompt, messages)
 
