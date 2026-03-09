@@ -161,6 +161,7 @@ def guardrail_faillback():
     }, 0
 
 
+# FUNCTION TO TEST IF USER QUERY IS REQUESTING A SUMMARY
 def is_summary_request(user_question):
     summary_keywords = [
         "summary",
