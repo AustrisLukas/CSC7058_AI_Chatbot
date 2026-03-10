@@ -10,10 +10,29 @@ st.header("⚙️  AI Behaviour Settings", divider="grey")
 
 col1, col2 = st.columns([5, 5])
 with col1:
+    options_ai_creativity = ["Strict", "Balanced", "Creative"]
     with st.container(border=True):
-        ai_response_style = st.radio(
-            "AI Response Style",
-            ["Concise", "Balanced", "Detailed"],
+        st.session_state.ai_creativity = st.radio(
+            label="AI Creativity Adjustment",
+            options=options_ai_creativity,
+            captions=[
+                "Strictly grounded AI outputs.",
+                "Combination of both.",
+                "Outside source supplemented outputs.",
+            ],
+            index=options_ai_creativity.index(st.session_state.ai_creativity),
+            help=(
+                "Adjust the creativity of AI responses (temperature). "
+                "Lower values produce more factual, deterministic output. "
+                "Use 0 to ensure responses strictly follow the provided source."
+            ),
+            label_visibility="visible",
+        )
+        st.write("---")
+        options_ai_response_style = ["Concise", "Balanced", "Detailed"]
+        st.session_state.ai_response_style = st.radio(
+            label="AI Response Style",
+            options=options_ai_response_style,
             captions=[
                 "Short, direct answers. Focuses on key facts and conclusions",
                 "Clear explanations with moderate detail. Avoids unnecessary verbosity",
@@ -21,24 +40,7 @@ with col1:
             ],
             help="Select your preferred AI response style (e.g. concise, balanced, or detailed).",
             label_visibility="visible",
-            index=1,
-        )
-        st.write("---")
-        ai_creatvity = st.radio(
-            "AI Creativity Adjustment",
-            ["Strict", "Balanced", "Creative"],
-            captions=[
-                "Strictly grounded AI outputs.",
-                "Combination of both.",
-                "Outside source supplemented outputs.",
-            ],
-            index=0,
-            help=(
-                "Adjust the creativity of AI responses (temperature). "
-                "Lower values produce more factual, deterministic output. "
-                "Use 0 to ensure responses strictly follow the provided source."
-            ),
-            label_visibility="visible",
+            index=options_ai_response_style.index(st.session_state.ai_response_style),
         )
     with col2:
 

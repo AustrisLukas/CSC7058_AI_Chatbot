@@ -69,9 +69,9 @@ def enabable_webmind_chat():
 # POPULATES CHAT ELEMENT WITH MESSAGES FROM st.session_state.chat_history
 def load_chat_history(mode):
 
-    mode_pointer = get_mode(mode)
+    chat_pointer, vector_pointer = get_mode(mode)
 
-    for message in mode_pointer:
+    for message in chat_pointer:
         with st.chat_message(message["role"]):
             st.markdown(message["content"])
             refs = message.get("references")
@@ -127,9 +127,9 @@ def send_message(role, message, mode, references=None):
 
     # CLEAN MESSAGE
     cleaned_msg = message.strip()
-    mode_pointer = get_mode(mode)
+    chat_pointer, vector_pointer = get_mode(mode)
 
-    mode_pointer.append(
+    chat_pointer.append(
         {
             "role": role,
             "content": cleaned_msg,
@@ -148,9 +148,9 @@ def send_message(role, message, mode, references=None):
 
 def get_mode(mode):
     if mode == "documind":
-        return st.session_state.chat_history
+        return st.session_state.chat_history, st.session_state.vector_store
     if mode == "webmind":
-        return st.session_state.chat_history_webmind
+        return st.session_state.chat_history_webmind, st.session_state.web_vector_store
     raise ValueError(f"Unsupported mode: {mode}")
 
 
@@ -192,25 +192,38 @@ def process_upload(on_step=None):
 
 # CALLS OPENAI OBJECT WITH A USER MESSAGE AND GETS RESPONSE
 def get_AI_response(mode, user_input):
-    if mode == "documind":
-        response, retrieval_score = run_rag_pipeline(
-            query=user_input,
-            messages=st.session_state.chat_history,
-            store=st.session_state.vector_store,
-            k=5,
-        )
-        return response, retrieval_score
-    elif mode == "webmind":
-        response, retrieval_score = run_rag_pipeline(
-            query=user_input,
-            messages=st.session_state.chat_history_webmind,
-            store=st.session_state.web_vector_store,
-            k=5,
-        )
-        return response, retrieval_score
-        return openai_service.get_openai_response(
-            user_input, st.session_state.chat_history_webmind
-        )
+
+    chat_pointer, vector_pointer = get_mode(mode)
+
+    response, retrieval_score = run_rag_pipeline(
+        query=user_input,
+        messages=chat_pointer,
+        store=vector_pointer,
+        k=5,
+        ai_creativity=st.session_state.ai_creativity.lower(),
+        ai_response_style=st.session_state.ai_response_style.lower(),
+    )
+    return response, retrieval_score
+
+    # if mode == "documind":
+    #     response, retrieval_score = run_rag_pipeline(
+    #         query=user_input,
+    #         messages=st.session_state.chat_history,
+    #         store=st.session_state.vector_store,
+    #         k=5,
+    #     )
+    #     return response, retrieval_score
+    # elif mode == "webmind":
+    #     response, retrieval_score = run_rag_pipeline(
+    #         query=user_input,
+    #         messages=st.session_state.chat_history_webmind,
+    #         store=st.session_state.web_vector_store,
+    #         k=5,
+    #     )
+    #     return response, retrieval_score
+    #     return openai_service.get_openai_response(
+    #         user_input, st.session_state.chat_history_webmind
+    #     )
 
 
 # CHECKS URL VALIDITY BY CONFIRMING HAS HAS SCHEME AND DOMAIN. BOTH MUST BE TRUE
