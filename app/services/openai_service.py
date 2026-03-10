@@ -16,6 +16,8 @@ client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 def get_openai_response(prompt, chat_history):
     messages = list(chat_history)
     messages.append({"role": "system", "content": prompt})
+    # print(f"OUTGOING OPEN AI PROMPT LEN -> {len(messages)}")
+    # print(f"OUTGOING OPEN AI PROMPT CONTENT -> {messages}")
     try:
         response = client.chat.completions.create(
             model="gpt-3.5-turbo", messages=messages

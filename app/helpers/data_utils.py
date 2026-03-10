@@ -206,14 +206,14 @@ def clean_extracted_text(text):
 def parse_model_json(text: str) -> dict:
     s = text.strip()
 
-    # remove ```json ... ``` or ``` ... ```
-    if s.startswith("```"):
-        lines = s.splitlines()
-        if lines and lines[0].startswith("```"):
-            lines = lines[1:]
-        if lines and lines[-1].strip() == "```":
-            lines = lines[:-1]
-        s = "\n".join(lines).strip()
+    # remove markdown code fences
+    s = re.sub(r"^```(?:json)?", "", s)
+    s = re.sub(r"```$", "", s)
+
+    # find the first JSON object
+    start = s.find("{")
+    end = s.rfind("}") + 1
+    s = s[start:end]
 
     return json.loads(s)
 
@@ -221,7 +221,7 @@ def parse_model_json(text: str) -> dict:
 def load_json(raw_json):
 
     try:
-        data = json.loads(raw_json)
+        data = parse_model_json(raw_json)
         return data
     except json.JSONDecodeError:
         data = {
@@ -230,4 +230,11 @@ def load_json(raw_json):
             "reason": "Parsing failure.",
             "references": [],
         }
-        return data
+    except Exception:
+        data = {
+            "answer": "Model returned invalid JSON.",
+            "self_score": 0,
+            "reason": "Parsing failure.",
+            "references": [],
+        }
+    return data

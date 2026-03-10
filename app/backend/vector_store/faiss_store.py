@@ -20,8 +20,6 @@ class FAISSStore:
 
     # Add  Embeddings and their corresponding text chunks
     def add(self, embeddings: List[List[float]], texts: List[str]) -> None:
-        print(len(embeddings))
-        print(len(texts))
         if len(embeddings) != len(texts):
             raise ValueError("Embeddings and texts must be have lenght")
 
@@ -61,13 +59,19 @@ class FAISSStore:
             results.append(self.texts[i])
         return results
 
+    # RETURNS DOCUMENT TEXTS
+    def get_document_text(self):
+        # full_text = " ".join(self.texts)
+        # logger.info(f"full document text returned with: {len(full_text.split())} words")
+        return self.texts
+
     def set_last_retrieval_score(self, distances: list[float]) -> float:
 
         d1 = distances[0]
         d2 = distances[1] if len(distances) > 1 else d1
 
         # CALIBRATION VALUES
-        d_good = 1.2  # very relevant
+        d_good = 1.2  # relevant
         d_bad = 1.7  # weak
 
         closeness = (d_bad - d1) / (d_bad - d_good)

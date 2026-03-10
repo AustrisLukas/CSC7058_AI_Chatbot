@@ -5,9 +5,12 @@ from streamlit_pdf_viewer import pdf_viewer
 from helpers import data_utils
 from helpers import helpers
 from services.openai_service import OpenAIServiceError
+import traceback
 
 
 st.session_state.setdefault("show_refs", True)
+st.session_state.setdefault("ai_creativity", "Balanced")
+st.session_state.setdefault("ai_response_style", "Balanced")
 
 
 def process_upload_with_status():
@@ -155,3 +158,4 @@ else:
                 st.error(str(e))
             except Exception as e:
                 st.error(f"Something went wrong..  \n {e}")
+                traceback.print_exc()
