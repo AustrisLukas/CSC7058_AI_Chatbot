@@ -32,18 +32,19 @@ RAG_MODES = {
 RESPONSE_STYLE = {
     "concise": (
         "Provide a short, direct answer focused on the key facts or conclusion. "
-        "Use minimal wording and avoid unnecessary explanation. "
+        "Prefer a small number of bullet points instead of long sentences when listing facts. "
         "Only include additional detail if it is required to correctly answer the question."
     ),
     "balanced": (
-        "Provide a clear explanation with moderate detail. "
-        "Summarise the most relevant information and reasoning from the context. "
+        "Provide a clear and well-structured explanation with moderate detail. "
+        "Use short paragraphs for explanations and bullet points to present key facts, steps, or lists. "
         "Prioritise clarity and readability while avoiding unnecessary verbosity."
     ),
     "detailed": (
-        "Provide a thorough explanation using all relevant information from the context. "
-        "Include important details, relationships, assumptions, or edge cases when helpful. "
-        "Use structured formatting such as bullet points or short sections when it improves clarity."
+        "Provide a comprehensive and well-structured explanation using all relevant information from the context. "
+        "Organise the response into short sections where helpful. "
+        "Use bullet points frequently to present key ideas, facts, steps, or comparisons. "
+        "Use short paragraphs to explain relationships, reasoning, or important context between bullet lists."
     ),
 }
 
@@ -147,6 +148,8 @@ def build_prompt(relevant_chunks: list[str], query, ai_creativity, ai_response_s
 
     Response style:
     {RESPONSE_STYLE[ai_response_style]}
+    - The value of "answer" may contain Markdown formatting.
+    - Use Markdown headings, bullet points, and short paragraphs to improve readability.
 
     Context:{context}
 
