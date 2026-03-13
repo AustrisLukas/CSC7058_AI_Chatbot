@@ -4,6 +4,7 @@ from backend.embeddings.embedder import embed_chunks
 from backend.vector_store.faiss_store import FAISSStore
 import logging
 from helpers.exceptions import DocumentExtractionError
+from backend.pipeline.pipeline import generate_suggested_questions
 
 logger = logging.getLogger(__name__)
 
@@ -63,4 +64,7 @@ def build_doc_pipeline(file=None, url=None, on_step=None):
     store.add(chunk_embeddings, chunked_text)
     logger.info("vector database succesfully created")
 
-    return extracted_text, chunked_text, chunk_embeddings, store
+    step("Generating suggested questions..")
+    suggested_questions = generate_suggested_questions(store.get_document_text())
+
+    return extracted_text, chunked_text, chunk_embeddings, store, suggested_questions
