@@ -14,6 +14,8 @@ from backend.ingestion.chunking import chunk_text
 from backend.embeddings.embedder import embed_chunks
 from backend.pipeline.pipeline import run_rag_pipeline
 import requests
+import traceback
+from helpers.data_utils import parse_model_json
 
 
 # ****** MOVE TO EXCEPTIONS
@@ -168,24 +170,28 @@ def process_upload(on_step=None):
 
     try:
 
-        extracted_text, chunked_text, chunk_embeddings, store = (
+        extracted_text, chunked_text, chunk_embeddings, store, suggested_questions = (
             document_service.build_doc_pipeline(file=uploaded_file, on_step=on_step)
         )
         st.session_state.extracted_text = extracted_text
         st.session_state.chunked_text = chunked_text
         st.session_state.chunk_embeddings = chunk_embeddings
         st.session_state.vector_store = store
+        parsed_questions = parse_model_json(suggested_questions)
+        st.session_state.suggested_questions = parsed_questions.get("questions", [])
 
         enable_chat()
         clear_upload_error()
 
     except DocumentExtractionError as e:
         logging.error(f"DocumentExtractionError while processing text extraction: {e}")
+        traceback.print_exc()
         set_upload_error(e)
         reset_chat("documind")
 
     except Exception as e:
         logger.error(f"Exception encoutered while processing document upload: {e}")
+        traceback.print_exc()
         set_upload_error(e)
         reset_chat("documind")
 
@@ -271,7 +277,7 @@ def process_GO(on_step=None):
         st.session_state.validated_url = st.session_state.get("input_url")
         st.session_state.webmind_invalid_URL_error = ""
 
-        extracted_text, chunked_text, chunk_embeddings, store = (
+        extracted_text, chunked_text, chunk_embeddings, store, suggested_questions = (
             document_service.build_doc_pipeline(
                 url=st.session_state.validated_url, on_step=on_step
             )
@@ -281,6 +287,10 @@ def process_GO(on_step=None):
         st.session_state.web_chunked_text = chunked_text
         st.session_state.web_chunk_embeddings = chunk_embeddings
         st.session_state.web_vector_store = store
+        parsed_questions = parse_model_json(suggested_questions)
+        st.session_state.suggested_questions_webmind = parsed_questions.get(
+            "questions", []
+        )
 
         enabable_webmind_chat()
 

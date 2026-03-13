@@ -13,6 +13,29 @@ st.session_state.setdefault("ai_creativity", "Balanced")
 st.session_state.setdefault("ai_response_style", "Balanced")
 
 
+def process_msg_input(user_input):
+    helpers.send_message("user", user_input, "documind")
+    with st.spinner("thinking..", show_time=True):
+        (ai_response, st.session_state.retrieval_score) = helpers.get_AI_response(
+            "documind", user_input
+        )
+        retrieval_score_slot.progress(
+            int(round(st.session_state.retrieval_score)),
+            "Document Relevance Score",
+        )
+        st.session_state.self_evaluation_score = ai_response.get("self_score", 0)
+        self_evaluation_slot.progress(
+            st.session_state.self_evaluation_score,
+            "Answer Confidence (AI-Rated)",
+        )
+        helpers.send_message(
+            "assistant",
+            ai_response.get("answer", "<no answer>"),
+            "documind",
+            ai_response.get("references", "<no refs available>"),
+        )
+
+
 def process_upload_with_status():
     status_slot = st.empty()
     with status_slot.container():
@@ -126,36 +149,24 @@ else:
     st.header("📚 DocuMind", divider="red")
     with st.status(label="Upload Complete", expanded=True, state="complete"):
         st.markdown(f":blue-badge[{st.session_state.stored_file.name}]")
+
+    st.markdown("### 💡 Suggested questions")
+    suggested_questions = st.session_state.get("suggested_questions", [])
+    if isinstance(suggested_questions, str):
+        suggested_questions = [suggested_questions]
+    cols = st.columns(len(suggested_questions))
+
     helpers.load_chat_history("documind")
 
+    for i, q in enumerate(suggested_questions):
+        if cols[i].button(q, key=f"suggested_{i}"):
+            process_msg_input(q)
+
     if user_input:
-        helpers.send_message("user", user_input, "documind")
-        with st.spinner("thinking..", show_time=True):
-            try:
-                (ai_response, st.session_state.retrieval_score) = (
-                    helpers.get_AI_response("documind", user_input)
-                )
-
-                retrieval_score_slot.progress(
-                    int(round(st.session_state.retrieval_score)),
-                    "Document Relevance Score",
-                )
-                st.session_state.self_evaluation_score = ai_response.get(
-                    "self_score", 0
-                )
-                self_evaluation_slot.progress(
-                    st.session_state.self_evaluation_score,
-                    "Answer Confidence (AI-Rated)",
-                )
-
-                helpers.send_message(
-                    "assistant",
-                    ai_response.get("answer", "<no answer>"),
-                    "documind",
-                    ai_response.get("references", "<no refs available>"),
-                )
-            except OpenAIServiceError as e:
-                st.error(str(e))
-            except Exception as e:
-                st.error(f"Something went wrong..  \n {e}")
-                traceback.print_exc()
+        try:
+            process_msg_input(user_input)
+        except OpenAIServiceError as e:
+            st.error(str(e))
+        except Exception as e:
+            st.error(f"Something went wrong..  \n {e}")
+            traceback.print_exc()

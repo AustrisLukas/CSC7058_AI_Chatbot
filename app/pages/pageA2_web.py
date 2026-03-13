@@ -12,6 +12,32 @@ st.session_state.setdefault("ai_creativity", "Balanced")
 st.session_state.setdefault("ai_response_style", "Balanced")
 
 
+def process_msg_input(user_input):
+    helpers.send_message("user", user_input, "webmind")
+    with st.spinner("thinking..", show_time=True):
+        ai_response, st.session_state.retrieval_score_webmind = helpers.get_AI_response(
+            "webmind", user_input
+        )
+        retrieval_score_slot.progress(
+            int(round(st.session_state.retrieval_score_webmind)),
+            "Document Relevance Score",
+        )
+        st.session_state.self_evaluation_score_webmind = ai_response.get(
+            "self_score", 0
+        )
+        self_evaluation_slot.progress(
+            st.session_state.self_evaluation_score_webmind,
+            "Answer Confidence (AI-Rated)",
+        )
+
+        helpers.send_message(
+            "assistant",
+            ai_response.get("answer", "<no answer>"),
+            "webmind",
+            ai_response.get("references", "<no references>"),
+        )
+
+
 def process_upload_with_status():
     status_slot = st.empty()
     with status_slot.container():
@@ -73,8 +99,19 @@ with st.sidebar:
             on_click=helpers.clear_chat,
             args=("webmind",),
         )
-        st.header("References", divider="red")
-        st.write("references here")
+        # DOCUMENT RELEVANCE SCORE
+        retrieval_score_slot = st.empty()
+        if "retrieval_score_webmind" in st.session_state:
+            retrieval_score_slot.progress(
+                int(round(st.session_state.retrieval_score_webmind)),
+                "Document Relevance Score",
+            )
+        self_evaluation_slot = st.empty()
+        if "self_evaluation_score_webmind" in st.session_state:
+            self_evaluation_slot.progress(
+                st.session_state.self_evaluation_score_webmind,
+                "Answer Confidence (AI-Rated)",
+            )
         st.header("Active URL", divider="violet")
         st.write(helpers.truncate(st.session_state.validated_url, 100))
 
@@ -117,22 +154,22 @@ else:
     with st.status(label="Web Source Processed", expanded=True, state="complete"):
         st.markdown(f":blue-badge[{st.session_state.validated_url}]")
 
+    st.markdown("### 💡 Suggested questions")
+    suggested_questions = st.session_state.get("suggested_questions_webmind", [])
+    if isinstance(suggested_questions, str):
+        suggested_questions = [suggested_questions]
+    cols = st.columns(len(suggested_questions))
+
     helpers.load_chat_history("webmind")
 
+    for i, q in enumerate(suggested_questions):
+        if cols[i].button(q, key=f"suggested_{i}"):
+            process_msg_input(q)
+
     if user_input:
-        helpers.send_message("user", user_input, "webmind")
-        with st.spinner("thinking..", show_time=True):
-            try:
-                ai_response, retrieval_score = helpers.get_AI_response(
-                    "webmind", user_input
-                )
-                helpers.send_message(
-                    "assistant",
-                    ai_response.get("answer", "<no answer>"),
-                    "webmind",
-                    ai_response.get("references", "<no references>"),
-                )
-            except OpenAIServiceError as e:
-                st.error(str(e))
-            except Exception as e:
-                st.error(f"Something went wrong..  \n {e}")
+        try:
+            process_msg_input(user_input)
+        except OpenAIServiceError as e:
+            st.error(str(e))
+        except Exception as e:
+            st.error(f"Something went wrong..  \n {e}")

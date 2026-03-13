@@ -171,51 +171,6 @@ def build_prompt(relevant_chunks: list[str], query, ai_creativity, ai_response_s
     return rag_query
 
 
-def build_self_evaluate_prompt(relevant_chunks: list[str], response):
-
-    prompt_parts = []
-    for i, chunk in enumerate(relevant_chunks):
-        prompt_parts.append(f"Chunk {i+1}\n{chunk}")
-
-    context = "\n\n".join(prompt_parts)
-
-    rag_query_with_ref = f"""
-    You are an evaluator. Score an answer only by support from the provided context.
-
-    Task:
-    Given QUESTION, ANSWER, and CONTEXT, evaluate how well the answer is grounded in the context.
-
-    Scoring rubric (0-100):
-    - 90-100: Fully supported, precise, no unsupported claims.
-    - 70-89: Mostly supported, minor omissions or slight imprecision.
-    - 40-69: Partially supported, important gaps or unclear claims.
-    - 0-39: Not supported, contradicted, or mostly fabricated.
-
-    Rules:
-    - Do not use external knowledge.
-    - If context lacks evidence for key claims, lower score.
-    - If answer correctly says information in context is missing, score high based on that correctness.
-    - Return JSON only. No markdown, no extra text.
-
-
-    Return schema:
-    {{
-    "self_score": <integer 0-100>,
-    "reason": "<one very short sentence>"
-    "references": [
-        "<short supporting quote or chunk snippet 1>",
-        "<short supporting quote or chunk snipped 2>",
-        ]
-    }}
-
-    Context:{context}
-
-    AI Response:{response}
-    """.strip()
-
-    return rag_query_with_ref
-
-
 def guardrail_faillback():
     logger.warning(
         "Low context guardrail triggered. No API call made and shortcircuit answer returned."
@@ -253,3 +208,41 @@ def is_summary_request(user_question):
             )
             return True
     return False
+
+
+def generate_suggested_questions(context):
+
+    prompt = f"""
+    You are generating suggested questions about a document.
+    Requirements:
+    - Generate 5 diverse questions about the document.
+    - Each question MUST be answerable using only the content of the document.
+    - Each question should cover a different aspect or topic.
+    - Do not repeat or rephrase the same question.
+    - The questions MUST be based specifically on the information contained in the provided context.
+    - Each question should refer to topics, concepts, entities, or information that appear in the document.
+    - Do NOT generate generic questions such as:
+    - "What is the title of the document?"
+    - "Who is the author?"
+    - "What is the purpose of the document?"
+    - Avoid meta questions about the document itself.
+    - Focus on questions that would require understanding the document's actual content.
+
+
+
+    Context:
+    {context}
+    
+    Return this exact schema:
+    {{
+    "questions": [
+        "question 1",
+        "question 2",
+        "question 3",
+        "question 4",
+        "question 5"
+    ]
+    }}
+    """.strip()
+
+    return openai_service.get_openai_response(prompt=prompt, chat_history=[])
