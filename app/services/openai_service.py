@@ -10,6 +10,8 @@ class OpenAIServiceError(Exception):
     pass
 
 
+EMBEDDING_MODEL = "text-embedding-3-small"
+
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 
@@ -42,3 +44,13 @@ def test_openai_key():
     except Exception as e:
         print(f"Open AI API key test failed: {e}")
         return False
+
+
+def embed_chunks(chunks: list[str]) -> list[list[float]]:
+    response = client.embeddings.create(model=EMBEDDING_MODEL, input=chunks)
+    return [item.embedding for item in response.data]
+
+
+def embed_query(query: str) -> list[float]:
+    response = client.embeddings.create(model=EMBEDDING_MODEL, input=[query])
+    return response.data[0].embedding
