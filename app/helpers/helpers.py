@@ -4,6 +4,7 @@ import logging
 from services import openai_service
 from helpers import data_utils
 from .exceptions import DocumentExtractionError
+from .exceptions import URLValidationError
 from ui.render_docx import render_docx
 from ui.render_excel import render_excel
 from ui.render_powerpoint import render_powerpoint
@@ -16,11 +17,6 @@ from backend.pipeline.pipeline import run_rag_pipeline
 import requests
 import traceback
 from helpers.data_utils import parse_model_json
-
-
-# ****** MOVE TO EXCEPTIONS
-class URLValidationError(Exception):
-    pass
 
 
 logger = logging.getLogger(__name__)
