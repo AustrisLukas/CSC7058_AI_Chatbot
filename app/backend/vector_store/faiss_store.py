@@ -70,6 +70,9 @@ class FAISSStore:
         d1 = distances[0]
         d2 = distances[1] if len(distances) > 1 else d1
 
+        closeness_reward = 0.85
+        separation_reward = 0.15
+
         # CALIBRATION VALUES
         d_good = 1.2  # relevant
         d_bad = 1.7  # weak
@@ -81,7 +84,7 @@ class FAISSStore:
         separation = gap / (d2 + 1e-8)
         separation = max(0.0, min(1.0, separation))
 
-        score = 100 * (0.85 * closeness + 0.15 * separation)
+        score = 100 * (closeness_reward * closeness + separation_reward * separation)
 
         self.last_retrieval_score = round(score, 1)
         logger.info(f"Retrieval socre: {round(self.last_retrieval_score)}")
