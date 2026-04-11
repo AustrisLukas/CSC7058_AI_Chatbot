@@ -42,7 +42,7 @@ def test_openai_key():
         models = client.models.list()
         return True
     except Exception as e:
-        print(f"Open AI API key test failed: {e}")
+        logger.error(f"Open AI API key test failed: {e}")
         return False
 
 
