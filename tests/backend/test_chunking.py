@@ -22,10 +22,17 @@ def test_chunk_text_returns_strings():
     assert all(isinstance(chunk, str) for chunk in chunks)
 
 
-# TEST CASE TO VERIFY EXCEPTION IS THROWN WHEN NO CHUNKS ARE GENERATED
-def test_chunk_text_throws_exc():
+def test_chunk_text_returns_single_chunk_for_empty_text():
+    with open("tests/fixtures/empty_text.txt") as file:
+        text = file.read().strip()
+        chunks = chunk_text(text)
 
-    with pytest.raises(DocumentChunkingError):
-        with open("tests/fixtures/empty_text.txt") as file:
-            text = file.read().strip()
-            chunks = chunk_text(text)
+    assert chunks == [""]
+
+
+def test_chunk_text_bypasses_for_small_input():
+    text = "short text exanple"
+
+    result = chunk_text(text)
+
+    assert result == [text]
