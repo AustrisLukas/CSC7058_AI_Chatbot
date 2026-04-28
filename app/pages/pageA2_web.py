@@ -10,6 +10,7 @@ from services.openai_service import OpenAIServiceError
 st.session_state.setdefault("show_refs", True)
 st.session_state.setdefault("ai_creativity", "Balanced")
 st.session_state.setdefault("ai_response_style", "Balanced")
+st.session_state.setdefault("language", "English")
 
 
 def process_msg_input(user_input):
@@ -124,28 +125,39 @@ if "validated_url" not in st.session_state or st.session_state.webmind_enabled =
     st.session_state.validated_url = ""
 
     st.header("🌐 Welcome to WebMind", divider="blue")
-    st.subheader("Upload a URL to activate the chat and start asking questions.")
-    st.write("WebMind provides clear, context-aware insights from your content.")
+    st.subheader("Start chatting with your content")
+    st.write("Enter a URL to receive clear, context-aware answers.")
 
-    col1, col2 = st.columns([5, 5])
+    col1, col2 = st.columns([6, 4])
 
     with col1:
-        st.text_input(
-            label="input_url",
-            key="input_url",
-            on_change=process_upload_with_status,
-            label_visibility="collapsed",
-            placeholder="https://",
-        )
-        if st.session_state.webmind_invalid_URL_error == True:
-            st.error(
-                f"**{st.session_state.webmind_invalid_URL_error_msg}**\n \n"
-                "Please check the URL and try again.",
-                icon="⚠️",
-            )
+        with st.container():
+            subcol1, subcol2 = st.columns([8, 2])
+            with subcol1:
+                st.text_input(
+                    label="input_url",
+                    key="input_url",
+                    on_change=process_upload_with_status,
+                    label_visibility="collapsed",
+                    placeholder="https://",
+                )
+                if st.session_state.webmind_invalid_URL_error == True:
+                    st.error(
+                        f"**{st.session_state.webmind_invalid_URL_error_msg}**\n \n"
+                        "Please check the URL and try again.",
+                        icon="⚠️",
+                    )
+
+            with subcol2:
+                st.button("Go!", on_click=helpers.process_GO)
 
     with col2:
-        st.button("Go!", on_click=helpers.process_GO)
+        with st.container(border=True):
+            st.success("### Why use WebMind?")
+            st.write("**Context-aware answers** from the active webpage")
+            st.write("**Quick exploration** of long-form web content")
+            st.write("**Direct URL analysis** without copying text manually")
+
 
 # ELSE PATHWAY IF st.session_state.file_data IS FOUND.
 # RENDERS CHAT-ENABLED INTERFACE

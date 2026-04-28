@@ -96,10 +96,19 @@ def format_ref(refs):
 
 # DELETES CHAT HISTORY FROM st.session_state.chat_history
 def clear_chat(mode):
+
     if mode == "documind":
         st.session_state.chat_history = []
+        if "retrieval_score" in st.session_state:
+            del st.session_state["retrieval_score"]
+        if "self_evaluation_score" in st.session_state:
+            del st.session_state["self_evaluation_score"]
     elif mode == "webmind":
         st.session_state.chat_history_webmind = []
+        if "retrieval_score_webmind" in st.session_state:
+            del st.session_state["retrieval_score_webmind"]
+        if "self_evaluation_score_webmind" in st.session_state:
+            del st.session_state["self_evaluation_score_webmind"]
 
 
 # DELETES ATTACHED FILE, CHAT HISTORY, AND DISABLES CHAT INPUT ELEMENT
@@ -204,6 +213,7 @@ def get_AI_response(mode, user_input):
         k=5,
         ai_creativity=st.session_state.ai_creativity.lower(),
         ai_response_style=st.session_state.ai_response_style.lower(),
+        language=st.session_state.language,
     )
     return response, retrieval_score
 

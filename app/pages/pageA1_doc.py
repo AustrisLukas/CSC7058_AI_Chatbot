@@ -11,6 +11,7 @@ import traceback
 st.session_state.setdefault("show_refs", True)
 st.session_state.setdefault("ai_creativity", "Balanced")
 st.session_state.setdefault("ai_response_style", "Balanced")
+st.session_state.setdefault("language", "English")
 
 
 def process_msg_input(user_input):
@@ -123,10 +124,11 @@ with st.sidebar:
 if "stored_file_data" not in st.session_state:
     st.session_state.chat_history = []
     st.header("📚 Welcome to DocuMind", divider="red")
-    st.subheader("Upload a document to activate the chat and start asking questions.")
-    st.write("DocuMind provides clear, context-aware insights from your content.")
-    col1, col2 = st.columns([6, 4])
+    st.subheader("Start chatting with your content")
+    st.write("Upload a document to receive clear, context-aware answers.")
+    col1, col2 = st.columns([6, 4], gap="large")
     with col1:
+
         st.file_uploader(
             "document_upload",
             label_visibility="hidden",
@@ -141,7 +143,12 @@ if "stored_file_data" not in st.session_state:
                 "Please try uploading a different document.",
                 icon="⚠️",
             )
-
+    with col2:
+        with st.container(border=True):
+            st.success("### Why use DocuMind?")
+            st.write("**Grounded answers** from the uploaded content")
+            st.write("**Quick exploration** of large documents")
+            st.write("**Multi-format support** in one interface")
 
 # ELSE PATHWAY IF st.session_state.file_data IS FOUND.
 # RENDERS CHAT-ENABLED INTERFACE

@@ -56,21 +56,25 @@ def run_rag_pipeline(
     k: int = 5,
     ai_creativity="balanced",
     ai_response_style="balanced",
+    language="English",
 ) -> str:
 
     logging.info(
-        f"Begin rag_pipeline for query -> {query} {ai_creativity}, {ai_response_style}"
+        f"Begin rag_pipeline for query -> {query} {ai_creativity}, {ai_response_style}, {language}"
     )
     # CHECK IF SUMMARY REQUEST AND HANDLE AS A SUMMARY REQUEST
     if is_summary_request(query):
         return generate_summary(relevant_chunks=store.get_document_text()), 100
 
     relevant_chunks, retrieval_score = retrieve_relevant_chunks(query, store, k)
-    prompt = build_prompt(relevant_chunks, query, ai_creativity, ai_response_style)
 
     # BREAK EARLY IF RETRIEVAL SCORE IS LOW AND PROVIDE DEFUALT 'LOW CONTEXT' ANSWER
     if retrieval_score < RETRIEVAL_TOLEANCE:
         return guardrail_faillback()
+
+    prompt = build_prompt(
+        relevant_chunks, query, ai_creativity, ai_response_style, language
+    )
 
     ai_response = openai_service.get_openai_response(prompt, messages)
     logger.info(f"Query response: {ai_response}")
@@ -128,7 +132,9 @@ def retrieve_relevant_chunks(
     return store.search(query_embedding, k=k), store.get_last_retrieval_score()
 
 
-def build_prompt(relevant_chunks: list[str], query, ai_creativity, ai_response_style):
+def build_prompt(
+    relevant_chunks: list[str], query, ai_creativity, ai_response_style, language
+):
 
     prompt_parts = []
     for i, chunk in enumerate(relevant_chunks):
@@ -148,6 +154,7 @@ def build_prompt(relevant_chunks: list[str], query, ai_creativity, ai_response_s
 
     Response style:
     {RESPONSE_STYLE[ai_response_style]}
+    - The "answer" field MUST be written entirely in {language}.
     - The value of "answer" may contain Markdown formatting.
     - Use Markdown headings, bullet points, and short paragraphs to improve readability.
 
@@ -155,9 +162,10 @@ def build_prompt(relevant_chunks: list[str], query, ai_creativity, ai_response_s
 
     Question:{query}
 
+
     Return ONLY valid JSON in this exact schema:
     {{
-    "answer": "<full answer>",
+    "answer": "<full answer in {language}>",
     "self_score": <integer 0-100>,
     "references": [
         "<exact supporting quote 1>",

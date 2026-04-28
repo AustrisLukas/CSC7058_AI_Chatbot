@@ -7,36 +7,38 @@ st.set_page_config(
     layout="wide",
 )
 
-
 st.header("⚙️  User Preference Settings", divider="grey")
+
+languages = (
+    "English",
+    "Spanish",
+    "French",
+    "German",
+    "Portuguese",
+    "Italian",
+    "Chinese (Simplified)",
+    "Japanese",
+    "Korean",
+    "Arabic",
+    "Ukrainian",
+    "Polish",
+    "Czech",
+    "Lithuanian",
+    "Latvian",
+)
 
 col1, col2 = st.columns([4, 6])
 
 with col1:
 
-    language = st.selectbox(
+    st.session_state.language = st.selectbox(
         "AI Response Language",
-        (
-            "English",
-            "Spanish",
-            "French",
-            "German",
-            "Portuguese",
-            "Italian",
-            "Chinese (Simplified)",
-            "Japanese",
-            "Korean",
-            "Arabic",
-            "Ukrainian",
-            "Polish",
-            "Czech",
-            "Lithuanian",
-            "Latvian",
-        ),
+        languages,
         help=(
             "Select the language in which the AI should generate its responses."
             "This setting affects all text output from the AI, including summaries, explanations, and answers."
         ),
+        index=languages.index(st.session_state.language),
     )
 
     st.session_state.show_refs = st.checkbox(

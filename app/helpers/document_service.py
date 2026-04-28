@@ -5,6 +5,7 @@ from backend.vector_store.faiss_store import FAISSStore
 import logging
 from helpers.exceptions import DocumentExtractionError
 from backend.pipeline.pipeline import generate_suggested_questions
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -50,15 +51,19 @@ def build_doc_pipeline(file=None, url=None, on_step=None):
             on_step(msg)
 
     step("Extracting text from document...")
+    time.sleep(0.3)
     extracted_text = extract_text(file=file, url=url)
 
     step("Chunking extracted text...")
+    time.sleep(0.3)
     chunked_text = chunk_text(extracted_text)
 
     step("Embedding text chunks...")
+    time.sleep(0.3)
     chunk_embeddings = embed_chunks(chunked_text)
 
     step("Initialising vector database...")
+    time.sleep(0.5)
     # Initialise FAISS store
     store = FAISSStore(dimension=len(chunk_embeddings[0]))
     store.add(chunk_embeddings, chunked_text)
